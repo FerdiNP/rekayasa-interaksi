@@ -1,9 +1,7 @@
 <template>
   <div class="root">
     <div class="phone-frame">
-
       <main class="content">
-
         <div class="section-title">Layanan Mandiri</div>
 
         <section class="identity">
@@ -30,14 +28,9 @@
         </section>
 
         <section class="card layanan-list">
-          <button class="layanan-item">
-            Cuti
-          </button>
-          <button class="layanan-item">
-            Aktif Kembali
-          </button>
+          <button class="layanan-item">Cuti</button>
+          <button class="layanan-item">Aktif Kembali</button>
         </section>
-
       </main>
 
       <button class="fab">💬</button>
@@ -46,37 +39,29 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref } from "vue";
 
 const mahasiswa = ref({
-  nim: '202210370311272',
-  nama: 'Gemilang Rizmart Samodra',
-  fakultas: 'Fakultas Teknik',
-  prodi: 'Informatika',
-  status: 'Aktif'
-})
+  nim: "202210370311272",
+  nama: "Gemilang Rizmart Samodra",
+  fakultas: "Fakultas Teknik",
+  prodi: "Informatika",
+  status: "Aktif",
+});
 </script>
 
 <style scoped>
 .root {
-  background: #1f1f1f;
-  min-height: 100vh;
-  display: flex;
   align-items: center;
-  justify-content: center;
   padding: 16px;
+  width: 100%;
 }
 
 .phone-frame {
-  width: 360px;
-  max-width: 100%;
+  width: 100%;
   background: #ffffff;
   border-radius: 12px;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  min-height: 700px;
   padding-bottom: 80px;
 }
 

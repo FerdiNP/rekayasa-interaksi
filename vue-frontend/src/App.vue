@@ -38,7 +38,7 @@
           </router-link>
         </li>
         <li>
-          <router-link to="/"
+          <router-link to="/surat"
             ><span class="icon icon-6"></span>
             <p>Layanan Mandiri</p>
           </router-link>

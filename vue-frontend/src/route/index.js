@@ -3,7 +3,7 @@ import { createRouter, createWebHistory } from "vue-router"
 import Home from "../views/home.vue"
 import Jadwal from "../views/jadwalKuliah/index.vue"
 import KRS from "../views/krs/index.vue"
-import Surat from "../views/surat/index.vue"
+import Surat from "../views/Surat/index.vue"
 
 const routes = [
   {
