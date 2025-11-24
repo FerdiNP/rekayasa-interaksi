@@ -8,31 +8,31 @@
 
       <ul class="menu">
         <li>
-          <router-link to="/"
+          <router-link to="/profile"
             ><div class="icon icon-1"></div>
             Profil</router-link
           >
         </li>
         <li>
-          <router-link to="/"
-            ><span class="icon icon-2"></span>
+          <router-link to="/">
+            <span class="icon icon-2"></span>
             <p>Hasil Studi</p>
           </router-link>
         </li>
         <li>
-          <router-link to="/"
-            ><span class="icon icon-3"></span>
-            <p>KRS</p></router-link
-          >
+          <router-link to="/">
+            <span class="icon icon-3"></span>
+            <p>KRS</p>
+          </router-link>
         </li>
         <li>
-          <router-link to="/jadwal-kuliah"
-            ><span class="icon icon-4"></span>
+          <router-link to="/jadwal-kuliah">
+            <span class="icon icon-4"></span>
             <p>Jadwal Kuliah</p>
           </router-link>
         </li>
         <li>
-          <router-link to="/"
+          <router-link to="/keuangan"
             ><span class="icon icon-5"></span>
             <p>Keuangan</p>
           </router-link>
@@ -72,12 +72,18 @@
         <router-view />
       </div>
     </main>
+
+    <!-- Floating Chat -->
+    <FloatingChat />
   </div>
 </template>
 
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+
+// IMPORT Floating Chat
+import FloatingChat from "./components/FloatingChat.vue";
 
 const router = useRouter();
 const isSidebarOpen = ref(true);
@@ -104,6 +110,21 @@ function logout() {
 .container {
   display: flex;
   height: 100vh;
+}
+
+.container,
+.container-fluid,
+.container-lg,
+.container-md,
+.container-sm,
+.container-xl,
+.container-xxl {
+  --bs-gutter-x: 1.5rem;
+  --bs-gutter-y: 0;
+  width: 100%;
+  padding: 0;
+  margin-right: auto;
+  margin-left: auto;
 }
 
 /* Sidebar */
@@ -210,12 +231,13 @@ p {
 /* Main */
 main {
   margin-left: 100px;
-  width: 100%;
+  width: calc(100% - 100px);
   transition: 0.3s;
 }
 
 main.full {
   margin-left: 0;
+  width: 100%;
 }
 
 /* Header */
@@ -226,6 +248,8 @@ main.full {
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
+  position: sticky;
+  top: 0;
 }
 
 .menu-toggle {

@@ -200,6 +200,7 @@ function presensi(row) {
   padding: 24px 16px 40px;
   box-sizing: border-box;
   width: 100%;
+  background-color: white;
 }
 
 .page-inner {
@@ -223,11 +224,13 @@ function presensi(row) {
 .info p:first-child {
   font-size: 13px;
   color: #6b7280;
+  margin: 0;
 }
 
 .info p:last-child {
   font-size: 14px;
   color: #111827;
+  margin-bottom: 5px;
 }
 
 .alert {
@@ -259,6 +262,7 @@ function presensi(row) {
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 0;
 }
 
 .alert-title {
