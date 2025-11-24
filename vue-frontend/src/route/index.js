@@ -4,7 +4,8 @@ import Home from "../views/home.vue"
 import Jadwal from "../views/jadwalKuliah/index.vue"
 import KRS from "../views/krs/index.vue"
 import Surat from "../views/surat/index.vue"
-import Profil from "../views/Profil/index.vue"
+import Keuangan from "../views/keuangan/index.vue";
+import Editprofile from "../views/editprofile/index.vue";
 
 const routes = [
   {
@@ -28,11 +29,15 @@ const routes = [
     component: Surat
   },
   {
-  path: "/profil",
-  name: "profil",
-  component: Profil
-}
-
+    path: "/keuangan",
+    name: "keuangan",
+    component: Keuangan,
+  },
+  {
+    path: "/editprofile",
+    name: "editprofile",
+    component: Editprofile,
+  },
 ]
 
 const router = createRouter({

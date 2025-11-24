@@ -8,10 +8,10 @@
 
       <ul class="menu">
         <li>
-          <router-link to="/profil">
-            <div class="icon icon-1"></div>
-            Profil
-          </router-link>
+          <router-link to="/editprofile"
+            ><div class="icon icon-1"></div>
+            Profil</router-link
+          >
         </li>
         <li>
           <router-link to="/">
@@ -32,8 +32,8 @@
           </router-link>
         </li>
         <li>
-          <router-link to="/">
-            <span class="icon icon-5"></span>
+          <router-link to="/keuangan"
+            ><span class="icon icon-5"></span>
             <p>Keuangan</p>
           </router-link>
         </li>
