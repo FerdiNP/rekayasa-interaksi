@@ -6,5 +6,46 @@ use Illuminate\Database\Eloquent\Model;
 
 class Mahasiswa extends Model
 {
-    //
+    protected $table = 'mahasiswa';
+
+    protected $fillable = [
+        'nim',
+        'pin_login',
+        'nama_lengkap',
+        'alamat',
+        'email',
+        'no_hp',
+        'program_studi_id',
+        'angkatan',
+        'status_mhs',
+    ];
+
+    protected $hidden = [
+        'pin_login',
+    ];
+
+    public function programStudi()
+    {
+        return $this->belongsTo(ProgramStudi::class);
+    }
+
+    public function krs()
+    {
+        return $this->hasMany(KRS::class);
+    }
+
+    public function khs()
+    {
+        return $this->hasMany(KHS::class);
+    }
+
+    public function tagihan()
+    {
+        return $this->hasMany(Tagihan::class);
+    }
+
+    public function pengajuanSurat()
+    {
+        return $this->hasMany(PengajuanSurat::class);
+    }
 }
