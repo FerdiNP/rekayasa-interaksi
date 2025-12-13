@@ -1,25 +1,30 @@
 <?php
 
 namespace App\Http\Controllers\Api;
-use App\Models\Jadwal;
+use App\Models\JadwalKuliah;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\JadwalResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
 
 class JadwalController extends Controller
 {
     public function show($nim)
 {
-    $jadwal = Jadwal::with('krs_lama')->with('krs_baru')
-        ->where('NIM', $nim)
-        ->get();
+    $jadwal = JadwalKuliah::with([ 'kelasKuliah_lama.mataKuliah',
+    'kelasKuliah_lama.dosen',
+    'kelasKuliah_baru.mataKuliah',
+    'kelasKuliah_baru.dosen', 'mahasiswa'])
+                ->where('NIM', $nim)
+                ->get();
+
 
     if ($jadwal->isEmpty()) {
         return response()->json([
-            'success' => false,
+            'success' => true,
             'message' => "Jadwal dengan NIM $nim tidak ditemukan"
-        ], 404);
+        ], 200);
     }
 
     return new JadwalResource(true, "List jadwal NIM $nim", $jadwal);
@@ -36,22 +41,15 @@ $validator = Validator::make($request->all(), [
             'min:15',
             'max:15',
     ],
-    // Nama: wajib, minimal 3 huruf, hanya boleh huruf dan spasi
-    'id_matkul_lama' => [
+    'kelas_kuliah_lama' => [
         'required'
     ],
-    // Email: wajib, harus valid format email
-    'id_matkul_baru' => [
-        'required'
-    ],'nama_dosen' => [
+    'kelas_kuliah_baru' => [
         'required'
     ],
-    'ruang'  => [
+    'jumlah_hadir' =>[
         'required',
-    ],
-    // Nomor telepon: wajib, hanya angka, panjang 10–15 digit
-    'jam'  => [
-        'required'
+        'regex:/^[0-9]+$/'
     ],
 ]);
 
@@ -61,13 +59,11 @@ if ($validator->fails()) {
 return response()->json($validator->errors(), 422);
 }
 
-$post = Jadwal::create([
+$post = JadwalKuliah::create([
 'NIM' => $request->NIM,
-'id_matkul_lama' => $request->id_matkul_lama,
-'id_matkul_baru' => $request->id_matkul_baru,
-'nama_dosen' => $request->nama_dosen,
-'ruang' => $request->ruang,
-'jam' => $request->jam,
+'kelas_kuliah_lama' => $request->kelas_kuliah_lama,
+'kelas_kuliah_baru' => $request->kelas_kuliah_baru,
+'jumlah_hadir' => $request->jumlah_hadir,
 ]);
 
 //return response
@@ -78,27 +74,10 @@ public function update(Request $request, $id) //PUT
 {
     // Validasi input
    $validator = Validator::make($request->all(), [
-    'NIM'    => [
-            'required',
-            'regex:/^[0-9]+$/',
-            'min:15',
-            'max:15',
-    ],
-   // Nama: wajib, minimal 3 huruf, hanya boleh huruf dan spasi
-    'id_matkul_lama' => [
+    'kelas_kuliah_lama' => [
         'required'
     ],
-    // Email: wajib, harus valid format email
-    'id_matkul_baru' => [
-        'required'
-    ],'nama_dosen' => [
-        'required'
-    ],
-    'ruang'  => [
-        'required',
-    ],
-    // Nomor telepon: wajib, hanya angka, panjang 10–15 digit
-    'jam'  => [
+    'kelas_kuliah_baru' => [
         'required'
     ],
 ]);
@@ -107,64 +86,68 @@ public function update(Request $request, $id) //PUT
         return response()->json($validator->errors(), 422);
     }
 
-    // Cari user berdasarkan email (primary key)
-    $user =Jadwal::find($id);
+    $jadwal =JadwalKuliah::find( $id);
 
-    if (!$user) {
+    if (!$jadwal) {
         return response()->json([
-            'success' => false,
-            'message' => 'User tidak ditemukan'
+            "success" => false,
+            "message" => "Data jadwal tidak ditemukan"
         ], 404);
     }
 
-    // Update user
-    $user->update([
-        'NIM' => $request->NIM,
-        'id_matkul_lama' => $request->id_matkul_lama,
-        'id_matkul_baru' => $request->id_matkul_baru,
-        'nama_dosen' => $request->nama_dosen,
-        'ruang' => $request->ruang,
-        'jam' => $request->jam,
+    $jadwal->update([
+        'kelas_kuliah_lama' => $request->kelas_kuliah_lama,
+        'kelas_kuliah_baru' => $request->kelas_kuliah_baru,
     ]);
 
-    return new JadwalResource(true, 'Akun Berhasil Diubah!', $user);
+    return new JadwalResource(true, "Jadwal telah update", $jadwal);
 }
 
-    public function stream(Request $request)
+    public function presensi(Request $request) //PUT
     {
-        ignore_user_abort(false);
-        set_time_limit(0); // izinkan loop panjang
-        $nim = $request->query('NIM'); // ambil nim dari query parameter
+        $id = $request->id;
+        $dateTime= $request->dateTime;
+        $deviceDate = $request->tanggal; // format: Y-m-d
+        $deviceTime = $request->jam;     // format: H:i:s
+        Carbon::setLocale('id'); // set bahasa Indonesia
+        $namaHari = strtoupper(Carbon::parse($deviceDate)->translatedFormat('l'));
 
-        return response()->stream(function () use ($nim) {
-            while (!connection_aborted()) {
-                $update = Jadwal::where('NIM', $nim)
-                    ->orderBy('updated_at', 'DESC')
-                    ->get();
-                $lastUpdate = optional($update->first())->id_matkul_lama;
-                $latestUpdate = optional($update->first())->id_matkul_baru;
-
-                // Kirim data hanya jika ada perubahan baru
-                if ($latestUpdate != $lastUpdate) {
-                    $jadwal = Jadwal::with('krs_lama')->with('krs_baru')
-                    ->where('NIM', $nim)
-                    ->get();
-
-                    echo "Pembaruan Jadwal\n";
-                    echo "data: " . json_encode($jadwal) . "\n\n";
-
-                    ob_flush();
-                    flush();
-                }
-
-                usleep(500000); // cek setiap 10 detik
-            }
-        }, 200, [
-            "Content-Type" => "text/event-stream",
-        "Cache-Control" => "no-cache",
-        "Connection" => "keep-alive",
-        "Access-Control-Allow-Origin" => "*",
-        "X-Accel-Buffering" => "no"
+        $validator = Validator::make($request->all(), [
+        'id' => 'required|int',
+        'tanggal' => 'required',
+        'jam' => 'required|date_format:H:i:s',  
+         'dateTime' => 'required|date'
         ]);
+
+        if ($validator->fails()) {
+        return response()->json($validator->errors(), 422);
+    }
+
+        $jadwal = JadwalKuliah::find($id);
+
+    if (!$jadwal) {
+        return response()->json([
+            "success" => false,
+            "message" => "Data jadwal tidak ditemukan"
+        ], 404);
+    }
+
+        if (
+            $jadwal->updated_at->format('Y-m-d') != $deviceDate && // updated_at berbeda
+            $jadwal->kelasKuliah_baru->hari === $namaHari &&                       // hari sama dengan tanggal perangkat
+            $jadwal->kelasKuliah_baru->jam_mulai <= $deviceTime &&                   // jam_mulai <= perangkat
+            $jadwal->kelasKuliah_baru->jam_selesai >= $deviceTime                    // jam_selesai >= perangkat
+        ) {
+            $jadwal->timestamps = false;
+            $jadwal->forceFill([
+                'jumlah_hadir' => $jadwal->jumlah_hadir + 1,
+                'updated_at' =>  $dateTime
+
+            ])->save();
+        }else{
+            return new JadwalResource(true, "Anda telah melakukan presensi", null);
+        }
+
+    return new JadwalResource(true, "Presensi Berhasil", $jadwal);
     }
 }

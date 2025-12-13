@@ -7,17 +7,23 @@ use Illuminate\Database\Eloquent\Model;
 class Mahasiswa extends Model
 {
     protected $table = 'mahasiswa';
+    protected $primaryKey = 'nim';
+    public $incrementing = false;
+    protected $keyType = 'string';  
+
 
     protected $fillable = [
         'nim',
         'pin_login',
         'nama_lengkap',
         'alamat',
-        'email',
+        'email_UMM',
+        'email_pribadi',
         'no_hp',
+        'no_ktp',
         'program_studi_id',
         'angkatan',
-        'status_mhs',
+        'status_mhs'
     ];
 
     protected $hidden = [
@@ -29,6 +35,10 @@ class Mahasiswa extends Model
         return $this->belongsTo(ProgramStudi::class);
     }
 
+    public function jadwalKuliah()
+    {
+        return $this->hasMany(JadwalKuliah::class);
+    }
     public function krs()
     {
         return $this->hasMany(KRS::class);

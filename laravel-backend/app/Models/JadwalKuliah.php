@@ -9,15 +9,24 @@ class JadwalKuliah extends Model
     protected $table = 'jadwal_kuliah';
 
     protected $fillable = [
-        'kelas_kuliah_id',
-        'hari',
-        'jam_mulai',
-        'jam_selesai',
-        'ruang',
+        'NIM',
+        'kelas_kuliah_lama',
+        'kelas_kuliah_baru',
+        'jumlah_hadir'
     ];
 
-    public function kelasKuliah()
+    public function kelasKuliah_lama()
     {
-        return $this->belongsTo(KelasKuliah::class);
+        return $this->belongsTo(KelasKuliah::class, 'kelas_kuliah_lama', 'id');
+    }
+
+    public function kelasKuliah_baru()
+    {
+        return $this->belongsTo(KelasKuliah::class, 'kelas_kuliah_baru', 'id');
+    }
+
+    public function mahasiswa()
+    {
+        return $this->belongsTo(Mahasiswa::class, 'nim', 'NIM');
     }
 }

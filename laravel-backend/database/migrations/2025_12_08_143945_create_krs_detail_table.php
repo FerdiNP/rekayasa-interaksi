@@ -16,10 +16,13 @@ return new class extends Migration
                   ->cascadeOnDelete()
                   ->cascadeOnUpdate();
 
-            $table->foreignId('kelas_kuliah_id')
-                  ->constrained('kelas_kuliah')
-                  ->restrictOnDelete()
-                  ->cascadeOnUpdate();
+            $table->string('kelas_kuliah_id');
+
+            $table->foreign('kelas_kuliah_id')
+                ->references('id')
+                ->on('kelas_kuliah')
+                ->onDelete('restrict')
+                ->onUpdate('cascade'); 
 
             $table->timestamps();
 

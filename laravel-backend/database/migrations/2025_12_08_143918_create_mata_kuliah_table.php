@@ -9,8 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('mata_kuliah', function (Blueprint $table) {
-            $table->id();
-            $table->string('kode_mk', 10)->unique();
+            $table->string('kode_mk', 10)->primary();
             $table->string('nama_mk', 100);
             $table->unsignedTinyInteger('sks');
 

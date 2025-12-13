@@ -12,16 +12,30 @@ return new class extends Migration
             $table->engine = 'InnoDB';
 
             $table->id();
+            $table->string('NIM', 15);
+            
+            $table->foreign('NIM')
+                ->references('nim')
+                ->on('mahasiswa')
+                ->onDelete('restrict')
+                ->onUpdate('cascade');
 
-            $table->foreignId('kelas_kuliah_id')
-                  ->constrained('kelas_kuliah')
-                  ->cascadeOnDelete()
-                  ->cascadeOnUpdate();
+            $table->string('kelas_kuliah_lama');
 
-            $table->enum('hari', ['SENIN','SELASA','RABU','KAMIS','JUMAT','SABTU']);
-            $table->time('jam_mulai');
-            $table->time('jam_selesai');
-            $table->string('ruang', 50)->nullable();
+            $table->foreign('kelas_kuliah_lama')
+                ->references('id')
+                ->on('kelas_kuliah')
+                ->onDelete('restrict')
+                ->onUpdate('cascade'); 
+
+            $table->string('kelas_kuliah_baru');
+
+            $table->foreign('kelas_kuliah_baru')
+                ->references('id')
+                ->on('kelas_kuliah')
+                ->onDelete('restrict')
+                ->onUpdate('cascade');   
+            $table->integer('jumlah_hadir')->default(0);
             $table->timestamps();
         });
     }

@@ -19,6 +19,11 @@ class ProgramStudi extends Model
         return $this->hasMany(Mahasiswa::class);
     }
 
+    public function jadwalKuliah()
+    {
+        return $this->hasMany(JadwalKuliah::class);
+    }
+
     public function mataKuliah()
     {
         return $this->hasMany(MataKuliah::class);

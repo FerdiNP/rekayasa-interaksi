@@ -20,9 +20,15 @@
       <p class="subtitle">
         Kelas anda telah berpindah karena kuota penuh!
         <br /><br />
-        Mata Kuliah : {{ data?.matkul }} <br />
-        Kelas : {{ data?.kelas_baru || data?.kelas }} <br />
-        Dosen : {{ data?.dosen }}
+        Mata Kuliah : {{ data?.kelas_kuliah_baru.mata_kuliah.nama_mk || "-" }}
+        <br />
+        Kelas :
+        {{
+          `${data?.kelas_kuliah_lama.kode_kelas} → ${data?.kelas_kuliah_baru.kode_kelas}` ||
+          "-"
+        }}
+        <br />
+        Dosen : {{ data?.kelas_kuliah_baru.dosen.nama_dosen || "-" }}
       </p>
 
       <div class="actions">
@@ -47,11 +53,27 @@
       <p class="subtitle">
         Kelas anda berpindah karena kelas sebelumnya penuh.
         <br /><br />
-        Mata Kuliah : {{ data?.matkul }} <br />
-        Jadwal Lama : {{ data?.jadwal_lama || "-" }} <br />
-        Jadwal Baru : {{ data?.jadwal_baru }} <br />
-        Ruangan : {{ data?.ruang_baru || data?.ruang_lama }} <br />
-        Dosen : {{ data?.dosen }}
+        Mata Kuliah : {{ data?.kelas_kuliah_baru.mata_kuliah.nama_mk || "-" }}
+        <br />
+        Jadwal Lama :
+        {{
+          `${data?.kelas_kuliah_lama.hari}, ${data?.kelas_kuliah_lama.jam_mulai}-${data?.kelas_kuliah_lama.jam_selesai}` ||
+          "-"
+        }}
+        <br />
+        Jadwal Baru :
+        {{
+          `${data?.kelas_kuliah_baru.hari}, ${data?.kelas_kuliah_baru.jam_mulai}-${data?.kelas_kuliah_baru.jam_selesai}` ||
+          "-"
+        }}
+        <br />
+        Ruangan :
+        {{
+          `${data?.kelas_kuliah_lama.ruang} → ${data?.kelas_kuliah_baru.ruang}` ||
+          "-"
+        }}
+        <br />
+        Dosen : {{ data?.kelas_kuliah_baru.dosen.nama_dosen || "-" }}
       </p>
       <div class="actions">
         <button class="btn primary" @click="tutup">OK</button>
@@ -74,7 +96,29 @@ const props = defineProps({
 
 const emit = defineEmits(["close"]);
 
-function tutup() {
+async function tutup() {
+  try {
+    const res = await fetch(
+      `http://192.168.0.27:8000/api/Jadwal/${props.data?.id}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          kelas_kuliah_lama: props.data?.kelas_kuliah_baru.id,
+          kelas_kuliah_baru: props.data?.kelas_kuliah_baru.id,
+          _method: "PUT",
+        }),
+      }
+    );
+    const data = await res.json();
+    localStorage.setItem("jadwal", JSON.stringify(res.data));
+    console.log(data);
+  } catch (err) {
+    console.error("Error fetch jadwal:", err);
+  }
   emit("close");
 }
 </script>
