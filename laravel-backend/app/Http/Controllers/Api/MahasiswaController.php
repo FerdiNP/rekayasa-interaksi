@@ -6,38 +6,38 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 
-use App\Models\User;
-use App\Http\Resources\UserResource;
+use App\Models\Mahasiswa;
+use App\Http\Resources\MahasiswaResource;
 use Illuminate\Support\Facades\Hash;
-class UserController extends Controller
+class MahasiswaController extends Controller
 {
    public function login(Request $request)// POST
 {
     $request->validate([
-        'NIM'    => [
+        'nim'    => [
             'required',
             'regex:/^[0-9]+$/',
             'min:15',
             'max:15',
         ],
-         'password' => [
+         'pin_login' => [
         'required',
         'min:8',
-        
+        'regex:/^[0-9]+$/',
     ],
     ]);
 
 
-    $user = User::where('NIM', $request->NIM)->first();
+    $user = Mahasiswa::with('programStudi')->where('nim', $request->nim)->first();
 
-    if (!$user || !Hash::check($request->password, $user->password)) {
+    if (!$user || !Hash::check($request->pin_login, $user->pin_login)) {
         return response()->json([
             'success' => false,
             'message' => 'Akun tidak ditemukan!',
         ], 404);
     }
 
-    return new UserResource(true, 'Detail akun', $user);
+    return new MahasiswaResource(true, 'Detail akun', $user);
 }
 
 
@@ -46,42 +46,51 @@ public function store(Request $request) //POST
 {
 //define validation rules
 $validator = Validator::make($request->all(), [
-    'NIM'    => [
-            'required',
-            'regex:/^[0-9]+$/',
-            'min:15',
-            'max:15',
+    'nim' => [
+        'required',
+        'regex:/^[0-9]+$/',
+        'min:15',
+        'max:15',
     ],
-    // Nama: wajib, minimal 3 huruf, hanya boleh huruf dan spasi
-    'nama' => [
+    'nama_lengkap' => [
         'required',
         'min:3',
         'max:25',
         'regex:/^[A-Za-z\s]+$/'
     ],
-    // Email: wajib, harus valid format email
     'email_UMM' => [
+        'nullable',
+        'max:100',
         'email'
-    ],'email_pribadi' => [
+    ],
+    'email_pribadi' => [
+        'nullable',
+        'max:100',
         'email'
     ],
     'no_ktp'  => [
+        'nullable',
         'regex:/^[0-9]+$/',
     ],
-    // Nomor telepon: wajib, hanya angka, panjang 10–15 digit
-    'no_telp'  => [
+    'no_hp'  => [
+        'nullable',
         'regex:/^[0-9]+$/',
         'min:10',
         'max:15'
     ],
-    'fakultas'  => [
+    'alamat' => [
+        'nullable',
+    ],
+    'angkatan'  => [
+        'nullable'
+    ],
+    'program_studi_id'  => [
         'required'
     ],
-    'program_studi'  => [
-        'required'
+    'status_mhs' => [
+        'required',
     ],
-    // Password: minimal 8 karakter, harus ada huruf besar, kecil, angka, dan spesial karakter
-    'password' => [
+    'pin_login' => [
         'required',
         'min:8',
         'regex:/^[0-9]+$/'
@@ -95,7 +104,7 @@ return response()->json($validator->errors(), 422);
 }
 
 // Jika email sudah ada di database (tambahan untuk keamanan ekstra)
-if (User::where('NIM', $request->NIM)->exists()) {
+if (Mahasiswa::where('nim', $request->nim)->exists()) {
 return response()->json([
 'success' => false,
 'message' => 'NIM sudah terdaftar!',
@@ -103,70 +112,78 @@ return response()->json([
 }
 
 
-$post = User::create([
-'NIM' => $request->NIM,
-'nama' => $request->nama,
+$post = Mahasiswa::create([
+'nim' => $request->nim,
+'nama_lengkap' => $request->nama_lengkap,
 'email_UMM' => $request->email_UMM,
 'email_pribadi' => $request->email_pribadi,
 'no_ktp' => $request->no_ktp,
-'no_telp' => $request->no_telp,
+'no_hp' => $request->no_hp,
 'alamat' => $request->alamat,
-'fakultas' => $request->fakultas,
-'program_studi' => $request->program_studi,
-'password' => $request->password,
+'program_studi_id' => $request->program_studi_id,
+'angkatan' => $request->angkatan,
+'status_mhs' => $request->status_mhs,
+'pin_login' => $request->pin_login,
 ]);
 
 //return response
-return new UserResource(true, 'Akun Berhasil Ditambahkan!', $post);
+return new MahasiswaResource(true, 'Akun Berhasil Ditambahkan!', $post);
 }
 
 public function update(Request $request, $NIM) //PUT
 {
     // Validasi input
    $validator = Validator::make($request->all(), [
-    // Nama: wajib, minimal 3 huruf, hanya boleh huruf dan spasi
-    'nama' => [
+    'nama_lengkap' => [
         'required',
         'min:3',
         'max:25',
         'regex:/^[A-Za-z\s]+$/'
     ],
-    // Email: wajib, harus valid format email
     'email_UMM' => [
+        'nullable',
+        'max:100',
         'email'
-    ],'email_pribadi' => [
+    ],
+    'email_pribadi' => [
+        'nullable',
+        'max:100',
         'email'
     ],
     'no_ktp'  => [
+        'nullable',
         'regex:/^[0-9]+$/',
     ],
-    // Nomor telepon: wajib, hanya angka, panjang 10–15 digit
-    'no_telp'  => [
+    'no_hp'  => [
+        'nullable',
         'regex:/^[0-9]+$/',
         'min:10',
         'max:15'
     ],
-    'fakultas'  => [
+    'alamat' => [
+        'nullable',
+    ],
+    'angkatan'  => [
+        'nullable'
+    ],
+    'program_studi_id'  => [
         'required'
     ],
-    'program_studi'  => [
-        'required'
-    ],
-    // Password: minimal 8 karakter, harus ada huruf besar, kecil, angka, dan spesial karakter
-    'password' => [
+    'status_mhs' => [
         'required',
+    ],
+    'pin_login' => [
+        'nullable',
         'min:8',
         'regex:/^[0-9]+$/'
     ],
 ]);
 
-
     if ($validator->fails()) {
         return response()->json($validator->errors(), 422);
     }
 
-    // Cari user berdasarkan email (primary key)
-    $user =User::find($NIM);
+    $user =Mahasiswa::find($NIM);
 
     if (!$user) {
         return response()->json([
@@ -175,20 +192,20 @@ public function update(Request $request, $NIM) //PUT
         ], 404);
     }
 
-    // Update user
     $user->update([
-        'nama' => $request->nama,
+        'nama_lengkap' => $request->nama_lengkap,
         'email_UMM' => $request->email_UMM,
         'email_pribadi' => $request->email_pribadi,
         'no_ktp' => $request->no_ktp,
-        'no_telp' => $request->no_telp,
+        'no_hp' => $request->no_hp,
         'alamat' => $request->alamat,
-        'fakultas' => $request->fakultas,
-        'program_studi' => $request->program_studi,
-        'password' => bcrypt($request->password), // hash password
+        'program_studi_id' => $request->program_studi_id,
+        'angkatan' => $request->angkatan,
+        'status_mhs' => $request->status_mhs,
+        'pin_login' => bcrypt($request->pin_login),
     ]);
 
-    return new UserResource(true, 'Akun Berhasil Diubah!', $user);
+    return new MahasiswaResource(true, 'Akun Berhasil Diubah!', $user);
 }
 
 }

@@ -47,8 +47,61 @@ const form = ref({
   pic: "",
 });
 
-const handleSubmit = () => {
-  router.push("/profile");
+const errorMessage = ref("");
+
+const handleSubmit = async () => {
+  try {
+    const response = await fetch("http://192.168.0.27:8000/api/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        nim: form.value.nim,
+        pin_login: form.value.pic,
+      }),
+    });
+
+    const data_user = await response.json();
+    console.log("API response =>", data_user);
+
+    if (!response.ok) {
+      errorMessage.value = data_user.message || "Login gagal!";
+      return;
+    }
+
+    const jadwal = await fetch(
+      `http://192.168.0.27:8000/api/Jadwal/${form.value.nim}`,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+      }
+    );
+
+    const data_jadwal = await jadwal.json();
+    console.log("API response =>", data_jadwal);
+
+    console.log(jadwal.ok);
+
+    if (!jadwal.ok) {
+      errorMessage.value = data_jadwal.message || "Login gagal!";
+      return;
+    }
+
+    // simpan user ke localStorage
+    localStorage.setItem("user", JSON.stringify(data_user.data));
+
+    // simpan jadwal ke localStorage
+    localStorage.setItem("jadwal", JSON.stringify(data_jadwal.data));
+
+    // redirect setelah login berhasil
+    router.push("/profile");
+  } catch (err) {
+    errorMessage.value = "Terjadi kesalahan jaringan!";
+  }
 };
 </script>
 

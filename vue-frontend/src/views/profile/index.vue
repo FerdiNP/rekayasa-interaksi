@@ -2,6 +2,7 @@
 import { ref, onMounted } from "vue";
 import NotificationJadwal from "../../components/notificationJadwal.vue";
 
+const user = ref(null);
 const showNotification = ref(true);
 
 import { Bar } from "vue-chartjs";
@@ -15,6 +16,14 @@ import {
 } from "chart.js";
 
 Chart.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
+
+onMounted(() => {
+  const storedUser = localStorage.getItem("user");
+  if (storedUser) {
+    user.value = JSON.parse(storedUser);
+  }
+  console.log(user.value);
+});
 
 const ipLabels = [
   "2022/2023 Ganjil",
@@ -52,32 +61,32 @@ const chartOptions = {
     <h1 class="title">Profil</h1>
 
     <div class="card bio-card">
-      <h3 class="student-name">Ferdi Naufal Prasetyo</h3>
+      <h3 class="student-name">{{ user?.nama_lengkap }}</h3>
 
       <ul class="bio-list">
         <li class="bio-row">
           <span class="bio-icon">💳</span>
-          <span class="bio-text">202210370311272</span>
+          <span class="bio-text">{{ user?.NIM }}</span>
         </li>
         <li class="bio-row">
           <span class="bio-icon">🏛️</span>
-          <span class="bio-text">Fakultas Teknik</span>
+          <span class="bio-text">{{ user?.fakultas }}</span>
         </li>
         <li class="bio-row">
           <span class="bio-icon">📍</span>
-          <span class="bio-text">Program Studi Informatika</span>
+          <span class="bio-text">{{ user?.studi }}</span>
         </li>
         <li class="bio-row">
           <span class="bio-icon">📞</span>
-          <span class="bio-text">08123456789</span>
+          <span class="bio-text">{{ user?.no_telp || "-" }}</span>
         </li>
         <li class="bio-row">
           <span class="bio-icon">✉️</span>
-          <span class="bio-text">ferdinaufal6809@gmail.com</span>
+          <span class="bio-text">{{ user?.email_pribadi || "-" }}</span>
         </li>
         <li class="bio-row">
           <span class="bio-icon">📧</span>
-          <span class="bio-text">ferdinaufal@webmail.umm.ac.id</span>
+          <span class="bio-text">{{ user?.email_UMM || "-" }}</span>
         </li>
       </ul>
 

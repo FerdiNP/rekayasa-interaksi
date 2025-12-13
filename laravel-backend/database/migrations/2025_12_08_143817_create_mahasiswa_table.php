@@ -9,13 +9,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('mahasiswa', function (Blueprint $table) {
-            $table->id();
-            $table->string('nim', 15)->unique();
+            $table->string('nim', 15)->primary();
             $table->string('pin_login');
-            $table->string('nama_lengkap', 100);
+            $table->string('nama_lengkap', 25);
             $table->text('alamat')->nullable();
-            $table->string('email', 100)->nullable();
-            $table->string('no_hp', 20)->nullable();
+            $table->string('email_UMM', 100)->nullable();
+            $table->string('email_pribadi', 100)->nullable();
+            $table->string('no_hp', 15)->nullable();
+            $table->string('no_ktp')->nullable();
 
             $table->foreignId('program_studi_id')
                   ->constrained('program_studi')

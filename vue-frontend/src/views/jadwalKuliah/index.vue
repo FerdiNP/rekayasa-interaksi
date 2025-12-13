@@ -5,11 +5,11 @@
     <div class="info-container">
       <div class="info">
         <p class="info-label">NIM</p>
-        <p class="info-value">202210370311272</p>
+        <p class="info-value">{{ user?.nim }}</p>
       </div>
       <div class="info">
         <p class="info-label">Nama</p>
-        <p class="info-value">Gemilang Rizmart Samodra</p>
+        <p class="info-value">{{ user?.nama_lengkap }}</p>
       </div>
       <div class="info">
         <p class="info-label">Tahun Akademik</p>
@@ -75,11 +75,14 @@
         </thead>
 
         <tbody>
-          <tr v-for="(row, index) in tableData" :key="index">
+          <tr v-for="(row, index) in jadwal" :key="index">
             <td>
               <div class="no">
                 <div
-                  v-if="row.alert === 'warning'"
+                  v-if="
+                    row.kelas_kuliah_baru.kode_kelas !==
+                    row.kelas_kuliah_lama.kode_kelas
+                  "
                   class="icon-wrap clickable"
                   @click="openAlert(row, 'warning')"
                 >
@@ -91,7 +94,10 @@
                 </div>
 
                 <div
-                  v-if="row.alert === 'error'"
+                  v-if="
+                    `${row.kelas_kuliah_baru.hari} ${row.kelas_kuliah_baru.jam_mulai} - ${row.kelas_kuliah_baru.jam_selesai}` !==
+                    `${row.kelas_kuliah_lama.hari} ${row.kelas_kuliah_lama.jam_mulai} - ${row.kelas_kuliah_lama.jam_selesai}`
+                  "
                   class="icon-wrap clickable"
                   @click="openAlert(row, 'error')"
                 >
@@ -105,14 +111,27 @@
                 {{ index + 1 }}
               </div>
             </td>
-            <td>{{ row.matkul }}</td>
-            <td>{{ row.sks }}</td>
-            <td>{{ row.kelas_baru || row.kelas }}</td>
-            <td>{{ row.dosen }}</td>
-            <td>{{ row.ruang_baru || row.ruang_lama }}</td>
-            <td>{{ row.jadwal_baru }}</td>
+            <td>{{ row.kelas_kuliah_baru.mata_kuliah.nama_mk }}</td>
+            <td>{{ row.kelas_kuliah_baru.mata_kuliah.sks }}</td>
+            <td>{{ row.kelas_kuliah_baru.kode_kelas }}</td>
+            <td>{{ row.kelas_kuliah_baru.dosen.nama_dosen }}</td>
+            <td>{{ row.kelas_kuliah_baru.ruang }}</td>
             <td>
-              <button class="btn-presensi" @click="presensi(row)">
+              {{
+                `${row.kelas_kuliah_baru.hari} ${row.kelas_kuliah_baru.jam_mulai} - ${row.kelas_kuliah_baru.jam_selesai}`
+              }}
+            </td>
+            <td>
+              <button
+                v-if="
+                  row.kelas_kuliah_baru.jam_mulai <=
+                    new Date().toTimeString().slice(0, 8) &&
+                  row.kelas_kuliah_baru.jam_selesai >=
+                    new Date().toTimeString().slice(0, 8)
+                "
+                class="btn-presensi"
+                @click="presensi(row)"
+              >
                 Presensi
               </button>
             </td>
@@ -141,7 +160,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import AlertDetails from "../../components/alertDetails.vue";
 import NotificationJadwal from "../../components/notificationJadwal.vue";
 import PresensiSuccess from "../../components/presensiSuccess.vue";
@@ -151,6 +170,40 @@ const showNotification = ref(false);
 const showPresensiSuccess = ref(false);
 const selectedAlertType = ref("warning");
 const selectedRow = ref(null);
+const user = ref(null);
+const jadwal = ref(null);
+let intervalId = null;
+
+onMounted(() => {
+  user.value = JSON.parse(localStorage.getItem("user"));
+  jadwal.value =
+    localStorage.getItem("jadwal") != "undefined"
+      ? JSON.parse(localStorage.getItem("jadwal"))
+      : null;
+  intervalId = setInterval(async () => {
+    try {
+      const res = await fetch(
+        `http://192.168.0.27:8000/api/Jadwal/${user.value.nim}`
+      );
+      const data = await res.json();
+      localStorage.setItem("jadwal", JSON.stringify(data.data));
+      jadwal.value =
+        localStorage.getItem("jadwal") != "undefined"
+          ? JSON.parse(localStorage.getItem("jadwal"))
+          : null;
+    } catch (err) {
+      console.error("Error fetch jadwal:", err);
+    }
+  }, 2000);
+});
+
+onUnmounted(() => {
+  if (intervalId) {
+    clearInterval(intervalId);
+    intervalId = null;
+    console.log("Interval dihentikan");
+  }
+});
 
 const tableData = [
   {
@@ -186,7 +239,39 @@ function openNotification() {
   showNotification.value = true;
 }
 
-function presensi(row) {
+async function presensi(row) {
+  const now = new Date();
+  console.log("Waktu: " + new Date().toTimeString().slice(0, 8));
+  const pad = (n) => n.toString().padStart(2, "0");
+  const tanggal = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(
+    now.getDate()
+  )}`;
+  const waktu = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(
+    now.getSeconds()
+  )}`;
+  const tanggalWaktu = `${tanggal} ${waktu}`;
+  console.log(tanggalWaktu);
+  try {
+    const res = await fetch(`http://192.168.0.27:8000/api/presensi`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        dateTime: tanggalWaktu,
+        tanggal: tanggal,
+        jam: waktu,
+        id: row?.id,
+        _method: "PUT",
+      }),
+    });
+    const data = await res.json();
+    localStorage.setItem("jadwal", JSON.stringify(res.data));
+    console.log(data);
+  } catch (err) {
+    console.error("Error fetch jadwal:", err);
+  }
   showPresensiSuccess.value = true;
 }
 </script>

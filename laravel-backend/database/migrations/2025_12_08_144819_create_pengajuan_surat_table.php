@@ -11,10 +11,13 @@ return new class extends Migration
         Schema::create('pengajuan_surat', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('mahasiswa_id')
-                  ->constrained('mahasiswa')
-                  ->restrictOnDelete()
-                  ->cascadeOnUpdate();
+            $table->string('mahasiswa_id', 15);
+            
+            $table->foreign('mahasiswa_id')
+                ->references('nim')
+                ->on('mahasiswa')
+                ->onDelete('restrict')
+                ->onUpdate('cascade');
 
             $table->foreignId('jenis_surat_id')
                   ->constrained('jenis_surat')
