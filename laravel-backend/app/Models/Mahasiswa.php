@@ -11,6 +11,7 @@ class Mahasiswa extends Model
     public $incrementing = false;
     protected $keyType = 'string';  
 
+
     protected $fillable = [
         'nim',
         'pin_login',
@@ -29,19 +30,6 @@ class Mahasiswa extends Model
         'pin_login',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'pin_login' => 'hashed',
-        ];
-    }
-
     public function programStudi()
     {
         return $this->belongsTo(ProgramStudi::class);
@@ -50,5 +38,24 @@ class Mahasiswa extends Model
     public function jadwalKuliah()
     {
         return $this->hasMany(JadwalKuliah::class);
+    }
+    public function krs()
+    {
+        return $this->hasMany(KRS::class);
+    }
+
+    public function khs()
+    {
+        return $this->hasMany(KHS::class);
+    }
+
+    public function tagihan()
+    {
+        return $this->hasMany(Tagihan::class);
+    }
+
+    public function pengajuanSurat()
+    {
+        return $this->hasMany(PengajuanSurat::class);
     }
 }

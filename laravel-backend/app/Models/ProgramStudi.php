@@ -23,4 +23,9 @@ class ProgramStudi extends Model
     {
         return $this->hasMany(JadwalKuliah::class);
     }
+
+    public function mataKuliah()
+    {
+        return $this->hasMany(MataKuliah::class);
+    }
 }
