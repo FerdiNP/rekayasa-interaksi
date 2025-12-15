@@ -44,7 +44,6 @@ class MahasiswaController extends Controller
 
 public function store(Request $request) //POST
 {
-//define validation rules
 $validator = Validator::make($request->all(), [
     'nim' => [
         'required',
