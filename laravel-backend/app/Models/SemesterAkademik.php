@@ -23,12 +23,12 @@ class SemesterAkademik extends Model
 
     public function krs()
     {
-        return $this->hasMany(Krs::class);
+        return $this->hasMany(KRS::class);
     }
 
     public function khs()
     {
-        return $this->hasMany(Khs::class);
+        return $this->hasMany(KHS::class);
     }
 
     public function tagihan()

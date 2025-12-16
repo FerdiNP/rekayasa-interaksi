@@ -159,6 +159,7 @@
 
   <PresensiSuccess
     v-if="showPresensiSuccess"
+    :pesan="pesanPresensi"
     @close="showPresensiSuccess = false"
   />
 </template>
@@ -177,6 +178,7 @@ const selectedRow = ref(null);
 const user = ref(null);
 const jadwal = ref(null);
 let intervalId = null;
+const pesanPresensi = ref("");
 
 onMounted(() => {
   user.value = JSON.parse(localStorage.getItem("user"));
@@ -272,7 +274,8 @@ async function presensi(row) {
     });
     const data = await res.json();
     localStorage.setItem("jadwal", JSON.stringify(res.data));
-    console.log(data);
+    console.log(data.message);
+    pesanPresensi.value = data.message;
   } catch (err) {
     console.error("Error fetch jadwal:", err);
   }

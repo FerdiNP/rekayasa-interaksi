@@ -2,14 +2,32 @@
 
 namespace Database\Seeders;
 
-// use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Seeder dikosongkan
-        // karena project tidak menggunakan tabel users
+        $this->call([
+            ProgramStudiSeeder::class,
+            DosenSeeder::class,
+            SemesterAkademikSeeder::class,
+            MataKuliahSeeder::class,
+            MahasiswaSeeder::class,
+            KelasKuliahSeeder::class,
+
+            KRSSeeder::class,
+            KRSDetailSeeder::class,
+
+            KHSSeeder::class,
+            KHSDetailSeeder::class,
+
+            JenisPembayaranSeeder::class,
+            TagihanSeeder::class,
+            PembayaranSeeder::class,
+
+            JenisSuratSeeder::class,
+            PengajuanSuratSeeder::class,
+        ]);
     }
 }

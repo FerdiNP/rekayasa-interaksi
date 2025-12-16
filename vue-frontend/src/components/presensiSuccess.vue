@@ -5,13 +5,11 @@
     <div class="modal-card" role="dialog" aria-modal="true">
       <div class="icon-wrap">
         <div class="icon-outer">
-          <div class="icon-inner">
-            ✓
-          </div>
+          <div class="icon-inner">✓</div>
         </div>
       </div>
 
-      <h2 class="title">Berhasil melakukan absen!</h2>
+      <h2 class="title">{{ pesan }}</h2>
       <p class="subtitle">
         Anda akan kembali ke halaman Jadwal Kuliah secara otomatis.
       </p>
@@ -21,6 +19,13 @@
 
 <script setup>
 import { onMounted } from "vue";
+
+const props = defineProps({
+  pesan: {
+    type: String,
+    default: "",
+  },
+});
 
 const emit = defineEmits(["close"]);
 

@@ -9,7 +9,6 @@ class PengajuanSurat extends Model
 {
     use HasFactory;
 
-    // kalau tabelmu bukan default plural, aktifkan:
     protected $table = 'pengajuan_surat';
 
     protected $fillable = [

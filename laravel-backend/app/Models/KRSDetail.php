@@ -15,11 +15,11 @@ class KRSDetail extends Model
 
     public function krs()
     {
-        return $this->belongsTo(Krs::class);
+        return $this->belongsTo(KRS::class);
     }
 
     public function kelasKuliah()
     {
-        return $this->belongsTo(KelasKuliah::class);
+        return $this->belongsTo(KelasKuliah::class, 'krs_id');
     }
 }

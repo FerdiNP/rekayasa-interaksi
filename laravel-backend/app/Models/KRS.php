@@ -28,6 +28,6 @@ class KRS extends Model
 
     public function detail()
     {
-        return $this->hasMany(KrsDetail::class);
+        return $this->hasMany(KRSDetail::class, 'krs_id');
     }
 }

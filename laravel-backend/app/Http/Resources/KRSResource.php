@@ -7,38 +7,19 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class KRSResource extends JsonResource
 {
-    //define properti
-public $status;
-public $message;
-public $resource;
-/**
-* __construct
-*
-* @param mixed $status
-* @param mixed $message
-* @param mixed $resource
-* @return void
-*/
-public function __construct($status, $message, $resource)
-{
-parent::__construct($resource);
-$this->status = $status;
-$this->message = $message;
-}
-
-/**
-* toArray
-*
-* @param mixed $request
-* @return array
-*/
     public function toArray(Request $request): array
     {
         return [
-            'success' => $this->status,
-            'message' => $this->message,
-            'data' => $this->resource
-            ];
-            
+            'id'        => $this->id,
+            'semester'  => [
+                'id'   => $this->semesterAkademik->id,
+                'kode' => $this->semesterAkademik->kode_semester,
+                'nama' => $this->semesterAkademik->nama_semester,
+                'status' => $this->semesterAkademik->status,
+            ],
+            'status'    => $this->status,
+            'total_sks' => $this->detail->sum(fn ($d) => $d->kelasKuliah->mataKuliah->sks),
+            'mata_kuliah' => KRSDetailResource::collection($this->detail),
+        ];
     }
 }

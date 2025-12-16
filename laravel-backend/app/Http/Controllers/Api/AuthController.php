@@ -1,55 +1,29 @@
 <?php
-
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use App\Models\Mahasiswa;
 
 class AuthController extends Controller
 {
-    public function login(Request $request)
+    public function register(Request $request)
     {
         $request->validate([
-            'nim' => ['required'],
-            'pin_login' => ['nullable'],
+            'name' => 'required',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|min:6',
         ]);
 
-        $mahasiswa = Mahasiswa::where('nim', $request->nim)->first();
-
-        if (!$mahasiswa) {
-            return response()->json(['message' => 'NIM tidak ditemukan!'], 401);
-        }
-
-        if ($mahasiswa->pin_login !== null) {
-            if (!$request->filled('pin_login') || !Hash::check($request->pin_login, $mahasiswa->pin_login)) {
-                return response()->json(['message' => 'PIC salah!'], 401);
-            }
-        }
-
-        $token = $mahasiswa->createToken('token-mahasiswa')->plainTextToken;
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
 
         return response()->json([
-            'message' => 'Login berhasil',
-            'token' => $token,
-            'mahasiswa' => $mahasiswa,
-        ], 200);
-    }
-
-    public function profile(Request $request)
-    {
-        return response()->json([
-            'mahasiswa' => $request->user()
-        ], 200);
-    }
-
-    public function logout(Request $request)
-    {
-        $request->user()->currentAccessToken()->delete();
-
-        return response()->json([
-            'message' => 'Logout berhasil'
-        ], 200);
+            'token' => $user->createToken('api-token')->plainTextToken,
+        ]);
     }
 }

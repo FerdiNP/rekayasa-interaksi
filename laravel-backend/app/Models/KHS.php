@@ -29,6 +29,6 @@ class KHS extends Model
 
     public function detail()
     {
-        return $this->hasMany(KhsDetail::class);
+        return $this->hasMany(KHSDetail::class, 'khs_id');
     }
 }
