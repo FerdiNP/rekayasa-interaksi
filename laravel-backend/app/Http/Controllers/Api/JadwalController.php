@@ -133,7 +133,7 @@ public function update(Request $request, $id) //PUT
     }
 
         if (
-            $jadwal->updated_at->format('Y-m-d') != $deviceDate && // updated_at berbeda
+            $jadwal->updated_at->lt(Carbon::parse($deviceDate)) &&             // updated_at < deviceDate
             $jadwal->kelasKuliah_baru->hari === $namaHari &&                       // hari sama dengan tanggal perangkat
             $jadwal->kelasKuliah_baru->jam_mulai <= $deviceTime &&                   // jam_mulai <= perangkat
             $jadwal->kelasKuliah_baru->jam_selesai >= $deviceTime                    // jam_selesai >= perangkat

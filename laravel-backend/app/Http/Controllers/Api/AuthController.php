@@ -16,9 +16,8 @@ class AuthController extends Controller
           'pin' => 'required',
       ]);
 
-      $mahasiswa = Mahasiswa::where('nim', $request->nim)->first();
-
-      if (! $mahasiswa || $mahasiswa->pin_login !== $request->pin) {
+      $mahasiswa = Mahasiswa::with('programStudi')->where('nim', $request->nim)->first();
+      if (!$mahasiswa || !Hash::check($request->pin, $mahasiswa->pin_login)){
           return response()->json([
               'message' => 'NIM atau PIN salah'
           ], 401);
@@ -32,7 +31,14 @@ class AuthController extends Controller
           'user' => [
               'nim' => $mahasiswa->nim,
               'nama_lengkap' => $mahasiswa->nama_lengkap,
-              'program_studi_id' => $mahasiswa->program_studi_id,
+              'alamat' => $mahasiswa->alamat,
+              'email_UMM' => $mahasiswa->email_UMM,
+              'email_pribadi' => $mahasiswa->email_pribadi,
+              'no_hp' => $mahasiswa->no_hp,
+              'no_ktp' => $mahasiswa->no_ktp,
+              'program_studi_id' => $mahasiswa->programStudi,
+              'angkatan' => $mahasiswa->angkatan,
+              'status_mhs' => $mahasiswa->status_mhs,
           ]
       ]);
   }

@@ -169,6 +169,7 @@ import { ref, onMounted, onUnmounted } from "vue";
 import AlertDetails from "../../components/alertDetails.vue";
 import NotificationJadwal from "../../components/notificationJadwal.vue";
 import PresensiSuccess from "../../components/presensiSuccess.vue";
+import api from "../../api";
 
 const showAlert = ref(false);
 const showNotification = ref(false);
@@ -188,11 +189,13 @@ onMounted(() => {
       : null;
   intervalId = setInterval(async () => {
     try {
-      const res = await fetch(
-        `http://192.168.0.2:8000/api/Jadwal/${user.value.nim}`
-      );
-      const data = await res.json();
-      localStorage.setItem("jadwal", JSON.stringify(data.data));
+      const res = await api.get(`/jadwal/${user.value.nim}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Accept: "application/json",
+        },
+      });
+      localStorage.setItem("jadwal", JSON.stringify(res.data.data));
       jadwal.value =
         localStorage.getItem("jadwal") != "undefined"
           ? JSON.parse(localStorage.getItem("jadwal"))
@@ -258,24 +261,25 @@ async function presensi(row) {
   const tanggalWaktu = `${tanggal} ${waktu}`;
   console.log(tanggalWaktu);
   try {
-    const res = await fetch(`http://192.168.0.2:8000/api/presensi`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
+    const res = await api.put(
+      `/presensi`,
+      {
         dateTime: tanggalWaktu,
         tanggal: tanggal,
         jam: waktu,
         id: row?.id,
-        _method: "PUT",
-      }),
-    });
-    const data = await res.json();
-    localStorage.setItem("jadwal", JSON.stringify(res.data));
-    console.log(data.message);
-    pesanPresensi.value = data.message;
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      }
+    );
+    const data = await res;
+    console.log(data.data.message);
+    pesanPresensi.value = data.data.message;
   } catch (err) {
     console.error("Error fetch jadwal:", err);
   }

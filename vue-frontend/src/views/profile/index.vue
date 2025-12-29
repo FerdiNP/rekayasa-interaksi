@@ -24,7 +24,7 @@ onMounted(() => {
     user.value = JSON.parse(storedUser);
   }
   const storedJadwal = localStorage.getItem("jadwal");
-  if (storedJadwal) {
+  if (storedJadwal != "undefined") {
     jadwal.value = JSON.parse(storedJadwal);
     for (let i = 0; i < jadwal.value.length; i++) {
       if (
@@ -74,20 +74,20 @@ const chartOptions = {
     <h1 class="title">Profil</h1>
 
     <div class="card bio-card">
-      <h3 class="student-name">{{ user?.nama_lengkap }}</h3>
+      <h3 class="student-name">{{ user?.nama_lengkap || "-" }}</h3>
 
       <ul class="bio-list">
         <li class="bio-row">
           <span class="bio-icon">💳</span>
-          <span class="bio-text">{{ user?.NIM }}</span>
+          <span class="bio-text">{{ user?.nim || "-" }}</span>
         </li>
         <li class="bio-row">
           <span class="bio-icon">🏛️</span>
-          <span class="bio-text">{{ user?.fakultas }}</span>
+          <span class="bio-text">{{ user?.fakultas || "-" }}</span>
         </li>
         <li class="bio-row">
           <span class="bio-icon">📍</span>
-          <span class="bio-text">{{ user?.studi }}</span>
+          <span class="bio-text">{{ user?.program_studi_id.nama_prodi }}</span>
         </li>
         <li class="bio-row">
           <span class="bio-icon">📞</span>
@@ -225,6 +225,7 @@ const chartOptions = {
 
 .bio-text {
   flex: 1;
+  overflow: hidden;
 }
 
 .edit-btn-wrap {

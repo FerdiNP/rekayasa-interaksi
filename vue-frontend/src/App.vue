@@ -78,7 +78,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "./stores/auth";
 import api from "./api";
@@ -91,16 +91,11 @@ const logout = async () => {
   auth.logout();
   router.push("/login");
 };
-const user = ref(null);
+const user = computed(() => auth.user);
 const router = useRouter();
 const isSidebarOpen = ref(true);
 const dropdownOpen = ref(false);
-onMounted(() => {
-  const storedUser = localStorage.getItem("user");
-  if (storedUser) {
-    user.value = JSON.parse(storedUser);
-  }
-});
+
 function toggleSidebar() {
   isSidebarOpen.value = !isSidebarOpen.value;
 }
@@ -115,7 +110,6 @@ function viewProfile() {
 </script>
 
 <style scoped>
-
 .container {
   padding: 0;
 }

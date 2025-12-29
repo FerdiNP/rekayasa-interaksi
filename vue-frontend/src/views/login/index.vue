@@ -7,12 +7,7 @@
       <p class="subtitle">Universitas Muhammadiyah Malang</p>
 
       <form class="form" @submit.prevent="handleSubmit">
-        <input
-          v-model="form.nim"
-          type="text"
-          placeholder="NIM"
-          class="input"
-        />
+        <input v-model="form.nim" type="text" placeholder="NIM" class="input" />
 
         <input
           v-model="form.pic"
@@ -71,6 +66,15 @@ const handleSubmit = async () => {
     });
 
     auth.setAuth(res.data.user, res.data.token);
+
+    const jadwal = await api.get(`/jadwal/${form.value.nim}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        Accept: "application/json",
+      },
+    });
+
+    localStorage.setItem("jadwal", JSON.stringify(jadwal.data.data));
     router.push("/profile");
   } catch (e) {
     error.value = e.response?.data?.message || "Server error";
@@ -80,10 +84,8 @@ const handleSubmit = async () => {
 };
 </script>
 
-
 <style scoped>
 .login-page {
-  height: 95vh;
   width: 100%;
   display: flex;
   justify-content: center;
@@ -104,7 +106,7 @@ const handleSubmit = async () => {
 }
 
 .logo {
-  width: 350px;
+  width: 100%;
   margin: 0 auto 10px;
 }
 

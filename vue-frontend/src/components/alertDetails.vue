@@ -83,6 +83,7 @@
 </template>
 
 <script setup>
+import api from "../api";
 const props = defineProps({
   alertType: {
     type: String,
@@ -98,24 +99,19 @@ const emit = defineEmits(["close"]);
 
 async function tutup() {
   try {
-    const res = await fetch(
-      `http://192.168.0.2:8000/api/Jadwal/${props.data?.id}`,
+    const res = await api.put(
+      `/jadwal/${props.data?.id}`,
       {
-        method: "POST",
+        kelas_kuliah_lama: props.data?.kelas_kuliah_baru.id,
+        kelas_kuliah_baru: props.data?.kelas_kuliah_baru.id,
+      },
+      {
         headers: {
-          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
           Accept: "application/json",
         },
-        body: JSON.stringify({
-          kelas_kuliah_lama: props.data?.kelas_kuliah_baru.id,
-          kelas_kuliah_baru: props.data?.kelas_kuliah_baru.id,
-          _method: "PUT",
-        }),
       }
     );
-    const data = await res.json();
-    localStorage.setItem("jadwal", JSON.stringify(res.data));
-    console.log(data);
   } catch (err) {
     console.error("Error fetch jadwal:", err);
   }
