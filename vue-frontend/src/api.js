@@ -1,7 +1,8 @@
 import axios from "axios";
+import router from "./route/router";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://192.168.0.14:8000/api",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000/api",
   headers: {
     "Content-Type": "application/json",
   },
@@ -14,5 +15,17 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+
+      router.push("/login");
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default api;

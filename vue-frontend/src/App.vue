@@ -87,10 +87,16 @@ import FloatingChat from "./components/FloatingChat.vue";
 const auth = useAuthStore();
 
 const logout = async () => {
-  await api.post("/logout");
-  auth.logout();
-  router.push("/login");
+  try {
+    await api.post("/logout");
+  } catch (error) {
+  } finally {
+    auth.logout();
+    localStorage.removeItem("token");
+    router.push("/login");
+  }
 };
+
 const user = computed(() => auth.user);
 const router = useRouter();
 const isSidebarOpen = ref(true);
