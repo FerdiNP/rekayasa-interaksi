@@ -5,200 +5,161 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-
 use App\Models\JenisSurat;
 use App\Models\PengajuanSurat;
 
+
 class SuratController extends Controller
+
 {
-    // =========================
-    // JENIS SURAT
-    // =========================
+    // JENIS SURAT 
     public function indexJenisSurat()
     {
-        return response()->json(JenisSurat::all(), 200);
+        return response()->json(JenisSurat::orderBy('id', 'desc')->get(), 200);
     }
 
     public function showJenisSurat($id)
     {
         $data = JenisSurat::find($id);
-        if (!$data) {
-            return response()->json(['message' => 'Not Found'], 404);
-        }
+        if (!$data) return response()->json(['message' => 'Jenis surat tidak ditemukan'], 404);
         return response()->json($data, 200);
     }
 
     public function storeJenisSurat(Request $request)
     {
-        $data = $request->validate([
-            'kode_surat' => 'required|string|max:50|unique:jenis_surat,kode_surat',
-            'nama_surat' => 'required|string|max:150',
-            'deskripsi'  => 'nullable|string',
+        $validated = $request->validate([
+            'nama_surat' => ['required', 'string', 'max:100', 'unique:jenis_surat,nama_surat'],
+            'deskripsi'  => ['nullable', 'string'],
         ]);
 
-        $jenis = JenisSurat::create($data);
-        return response()->json($jenis, 201);
+        $data = JenisSurat::create($validated);
+        return response()->json(['message' => 'Jenis surat berhasil dibuat', 'data' => $data], 201);
     }
 
     public function updateJenisSurat(Request $request, $id)
     {
-        $jenis = JenisSurat::find($id);
-        if (!$jenis) {
-            return response()->json(['message' => 'Not Found'], 404);
-        }
+        $data = JenisSurat::find($id);
+        if (!$data) return response()->json(['message' => 'Jenis surat tidak ditemukan'], 404);
 
-        $data = $request->validate([
-            'kode_surat' => [
-                'required',
-                'string',
-                'max:50',
-                Rule::unique('jenis_surat', 'kode_surat')->ignore($jenis->id),
+        $validated = $request->validate([
+            'nama_surat' => [
+                'required','string','max:100',
+                Rule::unique('jenis_surat', 'nama_surat')->ignore($data->id)
             ],
-            'nama_surat' => 'required|string|max:150',
-            'deskripsi'  => 'nullable|string',
+            'deskripsi'  => ['nullable', 'string'],
         ]);
 
-        $jenis->update($data);
-        return response()->json($jenis, 200);
+        $data->update($validated);
+        return response()->json(['message' => 'Jenis surat berhasil diupdate', 'data' => $data], 200);
     }
 
     public function destroyJenisSurat($id)
     {
-        $jenis = JenisSurat::find($id);
-        if (!$jenis) {
-            return response()->json(['message' => 'Not Found'], 404);
-        }
+        $data = JenisSurat::find($id);
+        if (!$data) return response()->json(['message' => 'Jenis surat tidak ditemukan'], 404);
 
-        $jenis->delete();
-        return response()->json(['message' => 'Deleted'], 200);
+        $data->delete();
+        return response()->json(['message' => 'Jenis surat berhasil dihapus'], 200);
     }
 
-    // =========================
-    // PENGAJUAN SURAT
-    // =========================
-    public function indexPengajuanSurat(Request $request)
-    {
-        $q = PengajuanSurat::with(['mahasiswa', 'jenisSurat']);
 
+   
+    // PENGAJUAN SURAT 
+    public function indexPengajuan(Request $request)
+    {
+        $q = PengajuanSurat::query()
+            ->with(['jenisSurat']); 
+
+        
         if ($request->filled('mahasiswa_id')) {
             $q->where('mahasiswa_id', $request->mahasiswa_id);
         }
 
-        return response()->json($q->get(), 200);
-    }
-
-    public function showPengajuanSurat($id)
-    {
-        $data = PengajuanSurat::with(['mahasiswa', 'jenisSurat'])->find($id);
-        if (!$data) {
-            return response()->json(['message' => 'Not Found'], 404);
+       
+        if ($request->filled('status')) {
+            $q->where('status', $request->status);
         }
+
+       
+        if ($request->filled('jenis_surat_id')) {
+            $q->where('jenis_surat_id', $request->jenis_surat_id);
+        }
+
+        $data = $q->orderBy('id', 'desc')->get();
+
+   
+        $data = $data->map(function ($item) {
+            $item->jenis_surat = $item->jenisSurat; 
+            unset($item->jenisSurat);
+            return $item;
+        });
+
         return response()->json($data, 200);
     }
 
-    public function storePengajuanSurat(Request $request)
+    public function showPengajuan($id)
     {
-        $data = $request->validate([
-           
-            'mahasiswa_id'    => 'required|exists:mahasiswa,id',
-            'jenis_surat_id'  => 'required|exists:jenis_surat,id',
+        $data = PengajuanSurat::with(['jenisSurat'])->find($id);
+        if (!$data) return response()->json(['message' => 'Pengajuan surat tidak ditemukan'], 404);
 
-            'tgl_pengajuan'   => 'required|date',
-            'keterangan_mhs'  => 'nullable|string',
-            'status'          => 'nullable|string|max:50',
-            'tgl_disetujui'   => 'nullable|date',
-            'catatan_admin'   => 'nullable|string',
-            'file_surat_path' => 'nullable|string|max:255',
-        ]);
+        $data->jenis_surat = $data->jenisSurat;
+        unset($data->jenisSurat);
 
-        $data['status'] = $data['status'] ?? 'PENDING';
-        $pengajuan = PengajuanSurat::create($data);
-
-        $pengajuan = PengajuanSurat::with(['mahasiswa', 'jenisSurat'])->find($pengajuan->id);
-
-        return response()->json($pengajuan, 201);
+        return response()->json($data, 200);
     }
 
-    public function updatePengajuanSurat(Request $request, $id)
+    public function storePengajuan(Request $request)
     {
-        $pengajuan = PengajuanSurat::find($id);
-        if (!$pengajuan) {
-            return response()->json(['message' => 'Not Found'], 404);
-        }
-
-        $data = $request->validate([
-            'mahasiswa_id'    => 'sometimes|exists:mahasiswa,id',
-            'jenis_surat_id'  => 'sometimes|exists:jenis_surat,id',
-            'tgl_pengajuan'   => 'sometimes|date',
-
-            'keterangan_mhs'  => 'nullable|string',
-            'status'          => 'sometimes|string|max:50',
-            'tgl_disetujui'   => 'nullable|date',
-            'catatan_admin'   => 'nullable|string',
-            'file_surat_path' => 'nullable|string|max:255',
+        $validated = $request->validate([
+            'mahasiswa_id'   => ['required'], // nim
+            'jenis_surat_id' => ['required', 'integer', 'exists:jenis_surat,id'],
+            'tgl_pengajuan'  => ['required', 'date'],
+            'keterangan_mhs' => ['nullable', 'string'],
+            'status'         => ['required', 'string', 'max:30'],
         ]);
 
-        $pengajuan->update($data);
+        $validated['status'] = strtoupper($validated['status']);
 
-        $pengajuan = PengajuanSurat::with(['mahasiswa', 'jenisSurat'])->find($pengajuan->id);
-        return response()->json($pengajuan, 200);
+        $data = PengajuanSurat::create($validated);
+
+        $data = PengajuanSurat::with('jenisSurat')->find($data->id);
+        $data->jenis_surat = $data->jenisSurat;
+        unset($data->jenisSurat);
+
+        return response()->json(['message' => 'Pengajuan surat berhasil dibuat', 'data' => $data], 201);
     }
 
-    public function destroyPengajuanSurat($id)
+    public function updatePengajuan(Request $request, $id)
     {
-        $pengajuan = PengajuanSurat::find($id);
-        if (!$pengajuan) {
-            return response()->json(['message' => 'Not Found'], 404);
+        $data = PengajuanSurat::find($id);
+        if (!$data) return response()->json(['message' => 'Pengajuan surat tidak ditemukan'], 404);
+
+        $validated = $request->validate([
+            'jenis_surat_id' => ['sometimes', 'integer', 'exists:jenis_surat,id'],
+            'tgl_pengajuan'  => ['sometimes', 'date'],
+            'keterangan_mhs' => ['sometimes', 'nullable', 'string'],
+            'status'         => ['sometimes', 'string', 'max:30'],
+        ]);
+
+        if (isset($validated['status'])) {
+            $validated['status'] = strtoupper($validated['status']);
         }
 
-        $pengajuan->delete();
-        return response()->json(['message' => 'Deleted'], 200);
+        $data->update($validated);
+
+        $data = PengajuanSurat::with('jenisSurat')->find($data->id);
+        $data->jenis_surat = $data->jenisSurat;
+        unset($data->jenisSurat);
+
+        return response()->json(['message' => 'Pengajuan surat berhasil diupdate', 'data' => $data], 200);
     }
 
-    // =========================
-    // DISETUJUI / DITOLAK
-    // =========================
-    public function approve(Request $request, $id)
+    public function destroyPengajuan($id)
     {
-        $pengajuan = PengajuanSurat::find($id);
-        if (!$pengajuan) {
-            return response()->json(['message' => 'Not Found'], 404);
-        }
+        $data = PengajuanSurat::find($id);
+        if (!$data) return response()->json(['message' => 'Pengajuan surat tidak ditemukan'], 404);
 
-        $data = $request->validate([
-            'catatan_admin'   => 'nullable|string',
-            'file_surat_path' => 'nullable|string|max:255',
-        ]);
-
-        $pengajuan->update([
-            'status'         => 'DISETUJUI',
-            'tgl_disetujui'  => now(),
-            'catatan_admin'  => $data['catatan_admin'] ?? null,
-            'file_surat_path'=> $data['file_surat_path'] ?? null,
-        ]);
-
-        $pengajuan = PengajuanSurat::with(['mahasiswa', 'jenisSurat'])->find($pengajuan->id);
-        return response()->json($pengajuan, 200);
-    }
-
-    public function reject(Request $request, $id)
-    {
-        $pengajuan = PengajuanSurat::find($id);
-        if (!$pengajuan) {
-            return response()->json(['message' => 'Not Found'], 404);
-        }
-
-        $data = $request->validate([
-            'catatan_admin' => 'required|string',
-        ]);
-
-        $pengajuan->update([
-            'status'        => 'DITOLAK',
-            'catatan_admin' => $data['catatan_admin'],
-            'tgl_disetujui' => null,
-        ]);
-
-        $pengajuan = PengajuanSurat::with(['mahasiswa', 'jenisSurat'])->find($pengajuan->id);
-        return response()->json($pengajuan, 200);
+        $data->delete();
+        return response()->json(['message' => 'Pengajuan surat berhasil dihapus'], 200);
     }
 }

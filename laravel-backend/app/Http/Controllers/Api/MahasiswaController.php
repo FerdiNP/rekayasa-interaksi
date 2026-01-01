@@ -11,38 +11,8 @@ use App\Http\Resources\MahasiswaResource;
 use Illuminate\Support\Facades\Hash;
 class MahasiswaController extends Controller
 {
-   public function login(Request $request)
-{
-    $request->validate([
-        'nim'    => [
-            'required',
-            'regex:/^[0-9]+$/',
-            'min:15',
-            'max:15',
-        ],
-         'pin_login' => [
-        'required',
-        'min:8',
-        'regex:/^[0-9]+$/',
-    ],
-    ]);
 
-
-    $user = Mahasiswa::with('programStudi')->where('nim', $request->nim)->first();
-
-    if (!$user || !Hash::check($request->pin_login, $user->pin_login)) {
-        return response()->json([
-            'success' => false,
-            'message' => 'NIM atau PIC salah!',
-        ], 401);
-    }
-
-    return new MahasiswaResource(true, 'Detail akun', $user);
-}
-
-
-
-public function store(Request $request) //POST
+public function store(Request $request)
 {
 $validator = Validator::make($request->all(), [
     'nim' => [
@@ -96,18 +66,15 @@ $validator = Validator::make($request->all(), [
     ],
 ]);
 
-
-//check if validation fails
 if ($validator->fails()) {
 return response()->json($validator->errors(), 422);
 }
 
-// Jika email sudah ada di database (tambahan untuk keamanan ekstra)
 if (Mahasiswa::where('nim', $request->nim)->exists()) {
 return response()->json([
 'success' => false,
 'message' => 'NIM sudah terdaftar!',
-], 409); // Conflict
+], 409);
 }
 
 
@@ -125,13 +92,11 @@ $post = Mahasiswa::create([
 'pin_login' => $request->pin_login,
 ]);
 
-//return response
 return new MahasiswaResource(true, 'Akun Berhasil Ditambahkan!', $post);
 }
 
-public function update(Request $request, $NIM) //PUT
+public function update(Request $request, $NIM)
 {
-    // Validasi input
    $validator = Validator::make($request->all(), [
     'nama_lengkap' => [
         'required',

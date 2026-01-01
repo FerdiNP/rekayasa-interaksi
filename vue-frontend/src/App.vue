@@ -2,7 +2,7 @@
   <div class="container">
     <aside
       :class="['sidebar', { open: isSidebarOpen }]"
-      v-if="!$route.meta.hideLayout"
+      v-if="!$route.meta.guest"
     >
       <div class="logo">
         <img src="../src/assets/UMM_Logo.svg" alt="UMM Logo" />
@@ -48,8 +48,8 @@
       </ul>
     </aside>
 
-    <main :class="{ full: $route.meta.hideLayout || !isSidebarOpen }">
-      <header class="header" v-if="!$route.meta.hideLayout">
+    <main :class="{ full: $route.meta.guest || !isSidebarOpen }">
+      <header class="header" v-if="!$route.meta.guest">
         <button
           :class="['menu-toggle', { geser: !isSidebarOpen }]"
           @click="toggleSidebar"
@@ -73,16 +73,24 @@
       </div>
     </main>
 
-    <FloatingChat v-if="!$route.meta.hideLayout" />
+    <FloatingChat v-if="!$route.meta.guest" />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-
+import { useAuthStore } from "./stores/auth";
+import api from "./api";
 import FloatingChat from "./components/FloatingChat.vue";
 
+const auth = useAuthStore();
+
+const logout = async () => {
+  await api.post("/logout");
+  auth.logout();
+  router.push("/login");
+};
 const user = ref(null);
 const router = useRouter();
 const isSidebarOpen = ref(true);
@@ -104,13 +112,10 @@ function toggleDropdown() {
 function viewProfile() {
   router.push("/profile");
 }
-
-function logout() {
-  router.push("/login");
-}
 </script>
 
 <style scoped>
+
 .container {
   padding: 0;
 }

@@ -3,14 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Sanctum\HasApiTokens;
 
 class Mahasiswa extends Model
 {
+    use HasApiTokens;
+
     protected $table = 'mahasiswa';
     protected $primaryKey = 'nim';
     public $incrementing = false;
-    protected $keyType = 'string';  
-
+    protected $keyType = 'string';
 
     protected $fillable = [
         'nim',
@@ -39,6 +41,7 @@ class Mahasiswa extends Model
     {
         return $this->hasMany(JadwalKuliah::class);
     }
+
     public function krs()
     {
         return $this->hasMany(KRS::class);

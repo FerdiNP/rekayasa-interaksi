@@ -1,22 +1,18 @@
 <template>
-  <div class="page">
-    <section class="login-box">
-      <!-- <img
-        src="/mnt/data/watermark-logo-umm.jpg"
-        class="logo"
-        alt="Logo UMM"
-      /> -->
-
-      <h1 class="brand">UMM</h1>
-      <p class="brand-sub">u m m . a c . i d</p>
+  <div class="login-page">
+    <div class="login-wrapper">
+      <img :src="logoUmm" alt="UMM Logo" class="logo" />
 
       <p class="title">Informasi Mahasiswa</p>
       <p class="subtitle">Universitas Muhammadiyah Malang</p>
 
-      <div id="error">hahah</div>
-
       <form class="form" @submit.prevent="handleSubmit">
-        <input v-model="form.nim" type="text" placeholder="NIM" class="input" />
+        <input
+          v-model="form.nim"
+          type="text"
+          placeholder="NIM"
+          class="input"
+        />
 
         <input
           v-model="form.pic"
@@ -25,154 +21,120 @@
           class="input"
         />
 
-        <button type="submit" class="btn-login">Login</button>
+        <p v-if="error" class="error">{{ error }}</p>
+
+        <button class="btn-login" :disabled="loading">
+          {{ loading ? "Loading..." : "Log in" }}
+        </button>
       </form>
 
-      <p class="footer">
-        Tetap rahasiakan PIC anda meskipun dari teman terdekat, pastikan log out
-        setelah transaksi, tetap jaga kerahasiaan identitas pribadi anda (KTM,
-        KTP, Kartu Keluarga) dari pihak yang menghubungi dan mengatasnamakan
-        UMM. Segera lapor ke BAA-AIK UMM jika terjadi penyalahgunaan.
-      </p>
-    </section>
+      <!-- <div class="links">
+        <a href="#">» Login Orang Tua</a>
+        <a href="#">» Panduan Reset Password</a>
+        <a href="#">» Login Password?</a>
+      </div> -->
+
+      <div class="info">
+        <h4>Informasi</h4>
+        <p>
+          Assalamualaikum Wr. Wb.<br /><br />
+          Selamat Datang di Aplikasi Portal Mahasiswa Universitas Muhammadiyah
+          Malang.
+        </p>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { useAuthStore } from "../../stores/auth";
+import api from "../../api";
+import logoUmm from "../../assets/Logo_UMM_Color.png";
 
 const router = useRouter();
+const auth = useAuthStore();
 
-const form = ref({
-  nim: "",
-  pic: "",
-});
+const form = ref({ nim: "", pic: "" });
+const error = ref("");
+const loading = ref(false);
 
 const handleSubmit = async () => {
+  error.value = "";
+  loading.value = true;
+
   try {
-    const response = await fetch("http://192.168.0.2:8000/api/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        nim: form.value.nim,
-        pin_login: form.value.pic,
-      }),
+    const res = await api.post("/login", {
+      nim: form.value.nim,
+      pin: form.value.pic,
     });
 
-    const data_user = await response.json();
-    if (!response.ok) {
-      const err_display = document.getElementById("error");
-      err_display.style.display = "block";
-      err_display.innerText = data_user.message || "Login gagal!";
-      return;
-    }
-
-    const jadwal = await fetch(
-      `http://192.168.0.2:8000/api/Jadwal/${form.value.nim}`,
-      {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-        },
-      }
-    );
-
-    const data_jadwal = await jadwal.json();
-
-    if (!jadwal.ok) {
-      errorMessage.value = data_jadwal.message || "Login gagal!";
-      return;
-    }
-
-    // simpan user ke localStorage
-    localStorage.setItem("user", JSON.stringify(data_user.data));
-
-    // simpan jadwal ke localStorage
-    localStorage.setItem("jadwal", JSON.stringify(data_jadwal.data));
-
-    // redirect setelah login berhasil
+    auth.setAuth(res.data.user, res.data.token);
     router.push("/profile");
-  } catch (err) {
-    err_display.value = "Terjadi kesalahan jaringan!";
+  } catch (e) {
+    error.value = e.response?.data?.message || "Server error";
+  } finally {
+    loading.value = false;
   }
 };
 </script>
 
+
 <style scoped>
-/* Background putih */
-.page {
-  min-height: 100vh;
+.login-page {
+  height: 95vh;
+  width: 100%;
   display: flex;
   justify-content: center;
-  padding: 40px 16px;
   background: #ffffff;
 }
 
-/* Kotak login */
-.login-box {
+.login-wrapper {
   width: 100%;
-  max-width: 350px;
+  max-width: 380px;
   text-align: center;
-  padding-top: 40px; /* 🔥 SEMUA ISI TURUN KE BAWAH */
+  padding: 24px;
 }
 
-/* LOGO */
+.error {
+  color: #d32f2f;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
 .logo {
-  width: 85px;
-  margin: 0 auto 12px;
+  width: 350px;
+  margin: 0 auto 10px;
 }
 
-/* TEKS UMM MERAH */
 .brand {
-  margin: 0;
   font-size: 46px;
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
+  margin: 0;
   color: #c62828;
-  font-family: "Arial Black", "Impact", sans-serif;
-  line-height: 0.9;
 }
 
-/* u m m . a c . i d – tebal + jarak lebar */
 .brand-sub {
-  margin: 4px 0 14px;
+  margin: 4px 0 16px;
   font-size: 13px;
   letter-spacing: 0.45em;
   font-weight: 700;
-  color: #222;
-  text-transform: lowercase;
 }
 
-/* JUDUL */
 .title {
-  margin: 0;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   color: #3f51b5;
 }
 
 .subtitle {
-  margin: 2px 0 22px;
   font-size: 12px;
+  margin-bottom: 24px;
   color: #3f51b5;
 }
 
-#error {
-  display: none;
-  color: #e9edef;
-  background-color: rgba(231, 76, 60, 0.88);
-  border-color: rgba(231, 76, 60, 0.88);
-  padding: 15px;
-  border-radius: 6px;
-  margin: 2px 0 22px;
-}
-
-/* FORM */
 .form {
   display: flex;
   flex-direction: column;
@@ -181,39 +143,61 @@ const handleSubmit = async () => {
 
 .input {
   padding: 10px 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
   font-size: 14px;
-  background: #fafafa;
 }
 
-.input:focus {
-  border-color: #9fa8da;
-  box-shadow: 0 0 0 1px rgba(159, 168, 218, 0.3);
-}
-
-/* LOGIN BUTTON */
 .btn-login {
-  margin-top: 10px;
-  padding: 10px 12px;
+  margin-top: 8px;
+  padding: 10px;
+  background: #5c6bc0;
   border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: 4px;
   color: white;
+  font-size: 14px;
   cursor: pointer;
-  background: linear-gradient(180deg, #6e7fdc, #5a68b8);
 }
 
 .btn-login:hover {
-  filter: brightness(1.05);
+  background: #3f51b5;
 }
 
-/* FOOTER */
-.footer {
-  margin-top: 24px;
-  font-size: 10px;
-  color: #999;
-  line-height: 1.4;
+.links {
+  margin: 14px 0;
+  text-align: left;
+  font-size: 12px;
+}
+
+.links a {
+  display: block;
+  color: #3f51b5;
+  text-decoration: none;
+  margin-bottom: 4px;
+}
+
+.info {
+  border-top: 1px solid #ddd;
+  margin-top: 16px;
+  padding-top: 10px;
+  text-align: left;
+}
+
+.info h4 {
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: #3f51b5;
+}
+
+.info p {
+  font-size: 12px;
+  color: #555;
+  line-height: 1.5;
+}
+
+@media (min-width: 768px) {
+  .login-page {
+    align-items: center;
+  }
 }
 </style>

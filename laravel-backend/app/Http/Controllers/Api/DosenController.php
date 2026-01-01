@@ -119,7 +119,7 @@ public function update(Request $request, $nidn) //PUT
     return new DosenResource(true, "Data dosen NIDN $request->nidn telah update!", $dosen);
 }
 
-public function destroy($nidn) //PUT
+public function destroy($nidn)
 {
     $dosen =Dosen::find( $nidn)->delete();
 
