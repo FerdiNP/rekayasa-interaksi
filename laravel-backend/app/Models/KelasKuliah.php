@@ -25,7 +25,7 @@ class KelasKuliah extends Model
 
     public function mataKuliah()
     {
-        return $this->belongsTo(MataKuliah::class,'mata_kuliah_id', 'kode_mk');
+        return $this->belongsTo(MataKuliah::class,'mata_kuliah_id');
     }
 
     public function semesterAkademik()
@@ -35,7 +35,7 @@ class KelasKuliah extends Model
 
     public function dosen()
     {
-        return $this->belongsTo(Dosen::class,'dosen_id', 'nidn');
+        return $this->belongsTo(Dosen::class,'dosen_id');
     }
 
     public function jadwalKuliah()
@@ -45,7 +45,7 @@ class KelasKuliah extends Model
 
     public function krsDetail()
     {
-        return $this->hasMany(KRSDetail::class);
+        return $this->hasMany(KRSDetail::class, 'kelas_kuliah_id');
     }
 
     public function khsDetail()

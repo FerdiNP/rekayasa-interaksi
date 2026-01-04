@@ -31,18 +31,18 @@ class KHSDetailSeeder extends Seeder
                 if ($nilaiAngka >= 85) {
                     $nilaiHuruf = 'A'; $bobot = 4.0;
                 } elseif ($nilaiAngka >= 80) {
-                    $nilaiHuruf = 'A-'; $bobot = 3.7;
+                    $nilaiHuruf = 'B+'; $bobot = 3.5;
                 } elseif ($nilaiAngka >= 75) {
-                    $nilaiHuruf = 'B+'; $bobot = 3.3;
-                } elseif ($nilaiAngka >= 70) {
                     $nilaiHuruf = 'B'; $bobot = 3.0;
+                } elseif ($nilaiAngka >= 70) {
+                    $nilaiHuruf = 'C+'; $bobot = 2.5;
                 } elseif ($nilaiAngka >= 65) {
-                    $nilaiHuruf = 'B-'; $bobot = 2.7;
-                } elseif ($nilaiAngka >= 60) {
                     $nilaiHuruf = 'C'; $bobot = 2.0;
+                } elseif ($nilaiAngka >= 60) {
+                    $nilaiHuruf = 'D'; $bobot = 1.5;
                 } else {
-                    $nilaiHuruf = 'D'; $bobot = 1.0;
-                }
+                    $nilaiHuruf = 'E'; $bobot = 1.0;
+                  }
 
                 DB::table('khs_detail')->insert([
                     'khs_id' => $khs->id,

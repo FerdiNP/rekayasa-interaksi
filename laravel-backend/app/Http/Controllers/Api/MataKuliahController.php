@@ -142,4 +142,3 @@ public function destroy($kode_mk) //PUT
     return new MataKuliahResource(true, "Matkul id $kode_mk Berhasil dihapus!", null);
 }
 }
-

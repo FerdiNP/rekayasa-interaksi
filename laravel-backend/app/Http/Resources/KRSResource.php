@@ -18,7 +18,9 @@ class KRSResource extends JsonResource
                 'status' => $this->semesterAkademik->status,
             ],
             'status'    => $this->status,
-            'total_sks' => $this->detail->sum(fn ($d) => $d->kelasKuliah->mataKuliah->sks),
+            'total_sks' => $this->detail->sum(function ($d) {
+                return optional(optional($d->kelasKuliah)->mataKuliah)->sks ?? 0;
+            }),
             'mata_kuliah' => KRSDetailResource::collection($this->detail),
         ];
     }

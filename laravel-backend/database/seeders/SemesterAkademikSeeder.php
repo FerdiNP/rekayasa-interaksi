@@ -16,7 +16,7 @@ class SemesterAkademikSeeder extends Seeder
             ['kode_semester'=>'20231','nama_semester'=>'2023/2024 Ganjil','status'=>'NON-AKTIF'],
             ['kode_semester'=>'20232','nama_semester'=>'2023/2024 Genap','status'=>'NON-AKTIF'],
 
-            ['kode_semester'=>'20241','nama_semester'=>'2024/2025 Ganjil','status'=>'NON-AKTIF'],
+            ['kode_semester'=>'20241','nama_semester'=>'2024/2025 Ganjil','status'=>'AKTIF'],
             ['kode_semester'=>'20242','nama_semester'=>'2024/2025 Genap','status'=>'NON-AKTIF'],
         ]);
     }

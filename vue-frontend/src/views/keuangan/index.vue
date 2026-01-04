@@ -5,15 +5,15 @@
     <div class="info-container">
       <div class="info">
         <p class="info-label">NIM</p>
-        <p class="info-value">202210370311272</p>
+        <p class="info-value">{{ nim }}</p>
       </div>
       <div class="info">
         <p class="info-label">Nama</p>
-        <p class="info-value">Gemilang Rizmart Samopdra</p>
+        <p class="info-value"> {{ nama }}</p>
       </div>
       <div class="info">
         <p class="info-label">Jenjang</p>
-        <p class="info-value">S-1</p>
+        <p class="info-value">S1</p>
       </div>
       <div class="info">
         <p class="info-label">Jenis Biaya</p>
@@ -21,11 +21,11 @@
       </div>
       <div class="info">
         <p class="info-label">Beasiswa</p>
-        <p class="info-value">Jalur Prestasi 100% SPP smt 1</p>
+        <p class="info-value">-</p>
       </div>
       <div class="info">
         <p class="info-label">Semester Pembayaran</p>
-        <p class="info-value">7</p>
+        <p class="info-value">{{ semesterAktif }}</p>
       </div>
     </div>
 
@@ -49,7 +49,7 @@
     </div>
 
     <div class="payment-section">
-      <h2 class="section-title">Pembayaran Semester 7</h2>
+      <h2 class="section-title">Pembayaran Semester {{ semesterAktif }}</h2>
 
       <div class="table-scroll-wrapper">
         <div class="table-min-width">
@@ -307,6 +307,27 @@
 
 <script setup>
 import { ref, reactive, nextTick, onMounted, onBeforeUnmount } from "vue";
+
+const nim = ref("-");
+const nama = ref("-");
+const semesterAktif = ref("-");
+
+onMounted(() => {
+  const storedUser = localStorage.getItem("user");
+  const storedSemester = localStorage.getItem("semester_aktif");
+  const storedMahasiswa = localStorage.getItem("semester_mahasiswa");
+
+  if (storedUser) {
+    const user = JSON.parse(storedUser);
+    nim.value = user.nim || "-";
+    nama.value = user.nama_lengkap || "-";
+  }
+
+  if (storedSemester) {
+    const SemesterMahasiswa = JSON.parse(storedMahasiswa);
+    semesterAktif.value = SemesterMahasiswa || "-";
+  }
+});
 
 const payments = ref([
   {

@@ -45,7 +45,6 @@
         <span>Aktif Kembali</span><span class="chevron">›</span>
       </button>
 
-      <!-- ✅ tombol baru hijau -->
       <button class="layanan-item layanan-surat" @click="go('layanan.surat')">
         <span>Pengajuan Surat</span><span class="chevron">›</span>
       </button>
@@ -54,82 +53,77 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, reactive } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import api from "../../api.js";
 
 const route = useRoute();
 const router = useRouter();
-const mahasiswaId = route.params.id || 1;
-
-const mahasiswa = ref({
-  nama: "Ferdi Naufal Prasetyo",
-  nim: "202210370311272",
-  fakultas: "Teknik",
-  prodi: "Program Studi Informatika",
-  status: "aktif",
+const mahasiswa = reactive({
+  nim: "",
+  nama: "",
+  fakultas: "",
+  prodi: "",
+  status: "",
 });
-
 const tabelCuti = ref([]);
 const tabelAktif = ref([]);
 
-const defaultCuti = [
-  { id: 1, tahun_ajar: "2023", semester_ajar: "2" },
-  { id: 2, tahun_ajar: "2024", semester_ajar: "3" },
-];
-const defaultAktif = [{ id: 1, tahun_ajar: "2024", semester_ajar: "4" }];
+onMounted( async () => {
+  const storedUser = localStorage.getItem("user");
 
-const fetchMahasiswa = async () => {
-  try {
-    const res = await api.get(`/mahasiswa/${mahasiswaId}`);
-    const m = res.data || {};
-    mahasiswa.value = {
-      nama: m.nama ?? m.name ?? mahasiswa.value.nama,
-      nim: m.nim ?? m.nim_mahasiswa ?? mahasiswa.value.nim,
-      fakultas: m.fakultas ?? m.faculty ?? mahasiswa.value.fakultas,
-      prodi: m.prodi ?? m.program_studi ?? mahasiswa.value.prodi,
-      status: m.status ?? mahasiswa.value.status,
-    };
-  } catch (e) {
-    console.error(e);
+  if (storedUser) {
+    const user = JSON.parse(storedUser);
+    mahasiswa.nim = user.nim;
+    mahasiswa.nama = user.nama_lengkap;
+    mahasiswa.status = user.status_mhs;
+    mahasiswa.prodi = user.program_studi_id?.nama_prodi || "-";
+    mahasiswa.fakultas = user.program_studi_id?.fakultas || "-";
   }
+
+  await fetchKrsAktif();
+  await fetchPengajuanSurat();
+});
+
+const fetchKrsAktif = async () => {
+  const res = await api.get(`/krs/aktif/${mahasiswaId}`);
+  const data = res.data;
+
+  tahunAkademik.value = data.semester_akademik?.nama_semester ?? "-";
+
+  const s = Number(data.semester);
+  semesterAktif.value = isNaN(s)
+    ? "-"
+    : s % 2 === 0
+    ? "Genap"
+    : "Ganjil";
 };
 
 const fetchPengajuanSurat = async () => {
-  try {
-    const res = await api.get("/pengajuan-surat", {
-      params: { mahasiswa_id: mahasiswaId },
-    });
-    const data = res.data || [];
-    const cuti = data.filter((i) =>
-      i.jenis_surat?.nama_surat?.toLowerCase().includes("cuti")
-    );
-    const aktif = data.filter(
-      (i) => !i.jenis_surat?.nama_surat?.toLowerCase().includes("cuti")
-    );
+  const res = await api.get("/pengajuan-surat", {
+    params: { mahasiswa_id: mahasiswaId },
+  });
 
-    tabelCuti.value = cuti.length ? cuti : defaultCuti;
-    tabelAktif.value = aktif.length ? aktif : defaultAktif;
-  } catch (e) {
-    tabelCuti.value = defaultCuti;
-    tabelAktif.value = defaultAktif;
-  }
+  const data = res.data || [];
+
+  tabelCuti.value = data.filter((i) =>
+    i.jenis_surat?.nama_surat?.toLowerCase().includes("cuti")
+  );
+
+  tabelAktif.value = data.filter(
+    (i) =>
+      i.jenis_surat &&
+      !i.jenis_surat.nama_surat.toLowerCase().includes("cuti")
+  );
 };
 
-onMounted(() => {
-  fetchMahasiswa();
-  fetchPengajuanSurat();
-});
+const jumlahCuti = computed(() => tabelCuti.value.length);
+const jumlahAktif = computed(() => tabelAktif.value.length);
 
-const jumlahCuti = computed(() =>
-  tabelCuti.value.length ? tabelCuti.value.length : defaultCuti.length
-);
-const jumlahAktif = computed(() =>
-  tabelAktif.value.length ? tabelAktif.value.length : defaultAktif.length
-);
-
-const go = (name) => router.push({ name, params: { id: mahasiswaId } });
+const go = (name) =>
+  router.push({ name, params: { id: mahasiswaId } });
 </script>
+
 
 <style scoped>
 /* pakai style yang kamu sudah punya, ini minimal biar jalan */

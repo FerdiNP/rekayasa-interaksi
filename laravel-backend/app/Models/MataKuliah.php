@@ -9,7 +9,7 @@ class MataKuliah extends Model
     protected $table = 'mata_kuliah';
     protected $primaryKey = 'kode_mk';
     public $incrementing = false;
-    protected $keyType = 'string';  
+    protected $keyType = 'string';
 
     protected $fillable = [
         'kode_mk',
@@ -26,6 +26,6 @@ class MataKuliah extends Model
 
     public function kelasKuliah()
     {
-        return $this->hasMany(KelasKuliah::class);
+        return $this->hasMany(KelasKuliah::class, 'mata_kuliah_id');
     }
 }

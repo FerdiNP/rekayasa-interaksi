@@ -97,6 +97,9 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import JadwalKelasBelumTersedia from "../../components/KRSUnavailable.vue";
+import api from "../../api";
+
+const matkulList = ref([]);
 
 const showJadwalModal = ref(false);
 const selectedMatkul = ref(null);
@@ -124,7 +127,42 @@ onMounted(() => {
     tahunAkademik.value = SemesterAkademik.nama_semester || "-";
     semesterAktif.value = SemesterMahasiswa || "-";
   }
+
+    fetchKRS();
 });
+
+async function fetchKRS() {
+  if (!nim.value || nim.value === "-") return;
+
+  try {
+    const res = await api.get(`/mahasiswa/${nim.value}/krs`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        Accept: "application/json",
+      },
+    });
+
+    const data = res.data.data || [];
+
+    matkulList.value = data.map((item) => ({
+      id: item.mata_kuliah.id,
+      nama: item.mata_kuliah.nama_mk,
+      semester: item.mata_kuliah.semester,
+      sks: item.mata_kuliah.sks,
+      isOpen: false,
+      kelas: item.kelas.map((k) => ({
+        kelas: k.kode_kelas,
+        jadwal: `${k.hari} ${k.jam}`,
+        nilai: k.nilai ?? "",
+        kuota: k.kuota,
+        terisi: k.terisi,
+        full: k.terisi >= k.kuota,
+      })),
+    }));
+  } catch (err) {
+    console.error("Gagal ambil KRS:", err.response || err);
+  }
+}
 </script>
 
 <style scoped>

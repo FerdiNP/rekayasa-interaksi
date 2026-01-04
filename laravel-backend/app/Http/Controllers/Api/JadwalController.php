@@ -31,9 +31,8 @@ class JadwalController extends Controller
 }
 
 
-    public function store(Request $request) //POST
+    public function store(Request $request)
 {
-//define validation rules
 $validator = Validator::make($request->all(), [
     'NIM'    => [
             'required',
@@ -54,7 +53,6 @@ $validator = Validator::make($request->all(), [
 ]);
 
 
-//check if validation fails
 if ($validator->fails()) {
 return response()->json($validator->errors(), 422);
 }
@@ -66,13 +64,11 @@ $post = JadwalKuliah::create([
 'jumlah_hadir' => $request->jumlah_hadir,
 ]);
 
-//return response
 return new JadwalResource(true, "Jadwal NIM $request->NIM Berhasil Ditambahkan!", $post);
 }
 
-public function update(Request $request, $id) //PUT
+public function update(Request $request, $id)
 {
-    // Validasi input
    $validator = Validator::make($request->all(), [
     'kelas_kuliah_lama' => [
         'required'
@@ -103,19 +99,19 @@ public function update(Request $request, $id) //PUT
     return new JadwalResource(true, "Jadwal telah update", $jadwal);
 }
 
-    public function presensi(Request $request) //PUT
+    public function presensi(Request $request)
     {
         $id = $request->id;
         $dateTime= $request->dateTime;
-        $deviceDate = $request->tanggal; // format: Y-m-d
-        $deviceTime = $request->jam;     // format: H:i:s
-        Carbon::setLocale('id'); // set bahasa Indonesia
+        $deviceDate = $request->tanggal;
+        $deviceTime = $request->jam;
+        Carbon::setLocale('id');
         $namaHari = strtoupper(Carbon::parse($deviceDate)->translatedFormat('l'));
 
         $validator = Validator::make($request->all(), [
         'id' => 'required|int',
         'tanggal' => 'required',
-        'jam' => 'required|date_format:H:i:s',  
+        'jam' => 'required|date_format:H:i:s',
          'dateTime' => 'required|date'
         ]);
 
@@ -133,10 +129,10 @@ public function update(Request $request, $id) //PUT
     }
 
         if (
-            $jadwal->updated_at->lt(Carbon::parse($deviceDate)) &&             // updated_at < deviceDate
-            $jadwal->kelasKuliah_baru->hari === $namaHari &&                       // hari sama dengan tanggal perangkat
-            $jadwal->kelasKuliah_baru->jam_mulai <= $deviceTime &&                   // jam_mulai <= perangkat
-            $jadwal->kelasKuliah_baru->jam_selesai >= $deviceTime                    // jam_selesai >= perangkat
+            $jadwal->updated_at->lt(Carbon::parse($deviceDate)) &&
+            $jadwal->kelasKuliah_baru->hari === $namaHari &&
+            $jadwal->kelasKuliah_baru->jam_mulai <= $deviceTime &&
+            $jadwal->kelasKuliah_baru->jam_selesai >= $deviceTime
         ) {
             $jadwal->timestamps = false;
             $jadwal->forceFill([
