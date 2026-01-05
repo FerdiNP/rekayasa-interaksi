@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
 
             KRSSeeder::class,
             KRSDetailSeeder::class,
+            JadwalKuliahSeeder::class,
 
             KHSSeeder::class,
             KHSDetailSeeder::class,

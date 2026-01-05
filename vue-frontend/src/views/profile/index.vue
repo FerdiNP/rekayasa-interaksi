@@ -26,6 +26,7 @@ Chart.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 function hitungSemester(angkatan, semesterAktif) {
   if (!angkatan || !semesterAktif?.nama_semester) return 1;
 
+  const tahunMasuk = parseInt(angkatan);
   const tahunAktif = parseInt(semesterAktif.nama_semester.substring(0, 4));
 
   const isGanjil = semesterAktif.nama_semester
@@ -33,74 +34,61 @@ function hitungSemester(angkatan, semesterAktif) {
     .includes("ganjil");
 
   let semester =
-    (tahunAktif - angkatan) * 2 + (isGanjil ? 1 : 2);
+    (tahunAktif - tahunMasuk) * 2 + (isGanjil ? 1 : 2);
 
   if (semester < 1) semester = 1;
+  if (semester > 14) semester = 14;
 
   return semester;
 }
 
-onMounted(() => {
-  if (route.query.success === "profile-updated") {
-    showSuccessModal.value = true;
 
-    router.replace({ path: "/profile" });
-  }
+
+onMounted(async () => {
   const storedUser = localStorage.getItem("user");
-  if (storedUser) {
-    user.value = JSON.parse(storedUser);
-  }
-  const storedJadwal = localStorage.getItem("jadwal");
-  if (storedJadwal != "undefined") {
-    jadwal.value = JSON.parse(storedJadwal);
-    for (let i = 0; i < jadwal.value.length; i++) {
-      if (
-        jadwal.value[i].kelas_kuliah_baru.id !=
-        jadwal.value[i].kelas_kuliah_lama.id
-      ) {
-        showNotification.value = true;
-        break;
-      }
-    }
-  }
-});
+  if (!storedUser) return;
 
-onMounted(async ()  => {
+  user.value = JSON.parse(storedUser);
+
+  // DEBUG
+  console.log("USER:", user.value);
+
   try {
-      const res = await api.get("/semester/aktif", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-          Accept: "application/json",
-        },
-      });
+    const res = await api.get("/semester/aktif", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        Accept: "application/json",
+      },
+    });
 
-      localStorage.setItem("semester_aktif", JSON.stringify(res.data.data));
-    } catch (e) {
-    console.error("Gagal ambil semester aktif:", e.response || e);
+    localStorage.setItem("semester_aktif", JSON.stringify(res.data.data));
+  } catch (e) {
+    console.error("Gagal ambil semester aktif:", e);
+    return;
   }
 
   const storedSemester = localStorage.getItem("semester_aktif");
-
   if (!storedSemester) return;
 
-  try {
-    const semesterAktif = JSON.parse(storedSemester);
+  const semesterAktif = JSON.parse(storedSemester);
 
-    const semesterMahasiswa = hitungSemester(
-      user.angkatan,
-      semesterAktif
-    );
+  const semesterMahasiswa = hitungSemester(
+    user.value.angkatan,
+    semesterAktif
+  );
 
-    localStorage.setItem(
-      "semester_mahasiswa",
-      semesterMahasiswa.toString()
-    );
+  console.log({
+    angkatan: user.value.angkatan,
+    semesterAktif: semesterAktif.nama_semester,
+    hasil: semesterMahasiswa,
+  });
 
-    console.log("Semester mahasiswa:", semesterMahasiswa);
-  } catch (e) {
-    console.error("Gagal hitung semester mahasiswa", e);
-  }
+  localStorage.setItem(
+    "semester_mahasiswa",
+    semesterMahasiswa.toString()
+  );
 });
+
 
 const ipLabels = [
   "2022/2023 Ganjil",

@@ -60,7 +60,7 @@
       </div>
 
       <div class="table-wrap">
-        <table>
+        <table v-if="jadwal.length > 0">
           <thead>
             <tr>
               <th>No</th>
@@ -78,11 +78,9 @@
             <tr v-for="(row, index) in jadwal" :key="index">
               <td>
                 <div class="no">
+
                   <div
-                    v-if="
-                      row.kelas_kuliah_baru.kode_kelas !==
-                      row.kelas_kuliah_lama.kode_kelas
-                    "
+                    v-if="row.is_pindah_kelas"
                     class="icon-wrap clickable"
                     @click="openAlert(row, 'warning')"
                   >
@@ -92,15 +90,13 @@
                       </div>
                     </div>
                   </div>
-
                   <div
-                    v-if="
-                      `${row.kelas_kuliah_baru.hari} ${row.kelas_kuliah_baru.jam_mulai} - ${row.kelas_kuliah_baru.jam_selesai}` !==
-                      `${row.kelas_kuliah_lama.hari} ${row.kelas_kuliah_lama.jam_mulai} - ${row.kelas_kuliah_lama.jam_selesai}`
-                    "
+                    v-else-if="row.is_jadwal_berubah"
                     class="icon-wrap clickable"
                     @click="openAlert(row, 'error')"
                   >
+
+
                     <div class="icon-wrapper-danger">
                       <div class="icon-wrapper-2-danger">
                         <div class="icon-danger"></div>
@@ -111,28 +107,19 @@
                   {{ index + 1 }}
                 </div>
               </td>
-              <td>{{ row.kelas_kuliah_baru.mata_kuliah.nama_mk }}</td>
-              <td>{{ row.kelas_kuliah_baru.mata_kuliah.sks }}</td>
-              <td>{{ row.kelas_kuliah_baru.kode_kelas }}</td>
-              <td>{{ row.kelas_kuliah_baru.dosen.nama_dosen }}</td>
-              <td>{{ row.kelas_kuliah_baru.ruang }}</td>
+              <td>{{ row.kelas_kuliah_baru?.mata_kuliah?.nama_mk || '-' }}</td>
+              <td>{{ row.kelas_kuliah_baru?.mata_kuliah?.sks || '-' }}</td>
+              <td>{{ row.kelas_kuliah_baru?.kode_kelas || '-' }}</td>
+              <td>{{ row.kelas_kuliah_baru?.dosen?.nama_dosen || '-' }}</td>
+              <td>{{ row.kelas_kuliah_baru?.ruang || '-' }}</td>
               <td>
                 {{
-                  `${row.kelas_kuliah_baru.hari} ${row.kelas_kuliah_baru.jam_mulai} - ${row.kelas_kuliah_baru.jam_selesai}`
+                  `${row.kelas_kuliah_baru?.hari || ''} ${row.kelas_kuliah_baru?.jam_mulai || ''} - ${row.kelas_kuliah_baru?.jam_selesai || ''}`
                 }}
               </td>
               <td>
                 <button
-                  v-if="
-                    row.kelas_kuliah_baru.jam_mulai <=
-                      new Date().toTimeString().slice(0, 8) &&
-                    row.kelas_kuliah_baru.jam_selesai >=
-                      new Date().toTimeString().slice(0, 8) &&
-                    row.kelas_kuliah_baru.hari ==
-                      new Intl.DateTimeFormat('id-ID', { weekday: 'long' })
-                        .format(new Date())
-                        .toUpperCase()
-                  "
+                  v-if="isPresensiTime(row)"
                   class="btn-presensi"
                   @click="presensi(row)"
                 >
@@ -142,6 +129,9 @@
             </tr>
           </tbody>
         </table>
+        <div v-else style="padding: 20px; text-align: center; color: #999;">
+          Tidak ada jadwal untuk ditampilkan
+        </div>
       </div>
     </div>
 
@@ -196,7 +186,7 @@
 
       await fetchJadwal();
 
-      intervalId = setInterval(fetchJadwal, 10000);
+      // intervalId = setInterval(fetchJadwal, 10000);
     } catch (err) {
       console.error("Init Jadwal gagal:", err);
     }
@@ -232,22 +222,25 @@
   });
 
   async function fetchJadwal() {
-    if (!user.value?.nim) return;
-
     try {
-      const res = await api.get(`/jadwal/${user.value.nim}`, {
+      const res = await api.get("/jadwal", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
           Accept: "application/json",
         },
       });
 
-      jadwal.value = res.data.data || [];
-      localStorage.setItem("jadwal", JSON.stringify(jadwal.value));
+      if (Array.isArray(res.data?.data)) {
+        jadwal.value = res.data.data;
+      } else {
+        jadwal.value = [];
+      }
     } catch (err) {
-      console.error("Error fetch jadwal:", err.response || err);
+      console.error("Error fetch jadwal:", err.response?.data || err.message);
+      jadwal.value = [];
     }
   }
+
 
   function openAlert(row, type) {
     selectedRow.value = row;
@@ -255,41 +248,63 @@
     showAlert.value = true;
   }
 
+  function isPresensiTime(row) {
+  if (!row.kelas_kuliah_baru) return false;
+
+  const now = new Date();
+  const currentTime = now.toTimeString().slice(0, 8);
+  const jamMulai = row.kelas_kuliah_baru.jam_mulai || "";
+  const jamSelesai = row.kelas_kuliah_baru.jam_selesai || "";
+
+  const hariSekarang = new Intl.DateTimeFormat("id-ID", { weekday: "long" })
+    .format(now)
+    .toUpperCase();
+  const hariJadwal = (row.kelas_kuliah_baru.hari || "").toUpperCase();
+
+  return (
+    jamMulai <= currentTime &&
+    jamSelesai >= currentTime &&
+    hariJadwal === hariSekarang
+  );
+  }
+
   async function presensi(row) {
-    try {
-      const now = new Date();
-      const pad = (n) => n.toString().padStart(2, "0");
+  try {
+    const now = new Date();
+    const pad = (n) => n.toString().padStart(2, "0");
 
-      const tanggal = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(
-        now.getDate()
-      )}`;
-      const jam = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(
-        now.getSeconds()
-      )}`;
+    const tanggal = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(
+      now.getDate()
+    )}`;
+    const jam = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(
+      now.getSeconds()
+    )}`;
 
-      const res = await api.put(
-        "/presensi",
-        {
-          id: row.id,
-          tanggal,
-          jam,
-          dateTime: `${tanggal} ${jam}`,
+    const res = await api.put(
+      "/jadwal/presensi",
+      {
+        id: row.id,
+        tanggal,
+        jam,
+        dateTime: `${tanggal} ${jam}`,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Accept: "application/json",
         },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-            Accept: "application/json",
-          },
-        }
-      );
-      console.log("RESPON JADWAL RAW:", res.data);
-      console.log("RESPON JADWAL DATA:", res.data.data);
+      }
+    );
 
-      pesanPresensi.value = res.data.message || "Presensi berhasil";
-      showPresensiSuccess.value = true;
-    } catch (err) {
-      console.error("Presensi gagal:", err.response || err);
-    }
+    pesanPresensi.value = res.data.message || "Presensi berhasil";
+    showPresensiSuccess.value = true;
+
+    await fetchJadwal();
+  } catch (err) {
+    console.error("Presensi gagal:", err.response?.data || err.message);
+    pesanPresensi.value = err.response?.data?.message || "Presensi gagal";
+    showPresensiSuccess.value = true;
+  }
   }
   </script>
 

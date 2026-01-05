@@ -67,7 +67,7 @@ const handleSubmit = async () => {
 
     auth.setAuth(res.data.user, res.data.token);
 
-    const jadwal = await api.get(`/jadwal/${form.value.nim}`, {
+    const jadwal = await api.get(`/jadwal`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
         Accept: "application/json",

@@ -2,6 +2,7 @@
   <div class="page">
     <div class="overlay"></div>
 
+    <!-- PINDAH KELAS -->
     <div
       v-if="alertType === 'warning'"
       class="modal-card"
@@ -16,19 +17,18 @@
         </div>
       </div>
 
-      <h2 class="title">Perubahan Kelas!</h2>
+      <h2 class="title">Perubahan Kelas</h2>
       <p class="subtitle">
-        Kelas anda telah berpindah karena kuota penuh!
-        <br /><br />
-        Mata Kuliah : {{ data?.kelas_kuliah_baru.mata_kuliah.nama_mk || "-" }}
+        Mata Kuliah :
+        {{ data?.kelas_kuliah_baru?.mata_kuliah?.nama_mk || "-" }}
         <br />
         Kelas :
-        {{
-          `${data?.kelas_kuliah_lama.kode_kelas} → ${data?.kelas_kuliah_baru.kode_kelas}` ||
-          "-"
-        }}
+        {{ data?.kelas_kuliah_lama?.kode_kelas }}
+        →
+        {{ data?.kelas_kuliah_baru?.kode_kelas }}
         <br />
-        Dosen : {{ data?.kelas_kuliah_baru.dosen.nama_dosen || "-" }}
+        Dosen :
+        {{ data?.kelas_kuliah_baru?.dosen?.nama_dosen || "-" }}
       </p>
 
       <div class="actions">
@@ -36,6 +36,7 @@
       </div>
     </div>
 
+    <!-- PERUBAHAN JADWAL -->
     <div
       v-else-if="alertType === 'error'"
       class="modal-card"
@@ -49,32 +50,26 @@
           </div>
         </div>
       </div>
-      <h2 class="title">Perubahan Jadwal Kuliah</h2>
+
+      <h2 class="title">Perubahan Jadwal</h2>
       <p class="subtitle">
-        Kelas anda berpindah karena kelas sebelumnya penuh.
-        <br /><br />
-        Mata Kuliah : {{ data?.kelas_kuliah_baru.mata_kuliah.nama_mk || "-" }}
+        Mata Kuliah :
+        {{ data?.kelas_kuliah_baru?.mata_kuliah?.nama_mk || "-" }}
         <br />
         Jadwal Lama :
-        {{
-          `${data?.kelas_kuliah_lama.hari}, ${data?.kelas_kuliah_lama.jam_mulai}-${data?.kelas_kuliah_lama.jam_selesai}` ||
-          "-"
-        }}
+        {{ data?.hari_lama }},
+        {{ data?.jam_mulai_lama }} - {{ data?.jam_selesai_lama }}
         <br />
         Jadwal Baru :
-        {{
-          `${data?.kelas_kuliah_baru.hari}, ${data?.kelas_kuliah_baru.jam_mulai}-${data?.kelas_kuliah_baru.jam_selesai}` ||
-          "-"
-        }}
+        {{ data?.kelas_kuliah_baru?.hari }},
+        {{ data?.kelas_kuliah_baru?.jam_mulai }} -
+        {{ data?.kelas_kuliah_baru?.jam_selesai }}
         <br />
-        Ruangan :
-        {{
-          `${data?.kelas_kuliah_lama.ruang} → ${data?.kelas_kuliah_baru.ruang}` ||
-          "-"
-        }}
-        <br />
-        Dosen : {{ data?.kelas_kuliah_baru.dosen.nama_dosen || "-" }}
+        Ruang :
+        {{ data?.ruang_lama }} →
+        {{ data?.kelas_kuliah_baru?.ruang }}
       </p>
+
       <div class="actions">
         <button class="btn primary" @click="tutup">OK</button>
       </div>
@@ -82,29 +77,22 @@
   </div>
 </template>
 
+
 <script setup>
 import api from "../api";
+
 const props = defineProps({
-  alertType: {
-    type: String,
-    default: "warning",
-  },
-  data: {
-    type: Object,
-    default: () => ({}),
-  },
+  alertType: String,
+  data: Object,
 });
 
 const emit = defineEmits(["close"]);
 
 async function tutup() {
   try {
-    const res = await api.put(
-      `/jadwal/${props.data?.id}`,
-      {
-        kelas_kuliah_lama: props.data?.kelas_kuliah_baru.id,
-        kelas_kuliah_baru: props.data?.kelas_kuliah_baru.id,
-      },
+    await api.put(
+      `/jadwal/${props.data.id}/ack`,
+      {},
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -113,11 +101,13 @@ async function tutup() {
       }
     );
   } catch (err) {
-    console.error("Error fetch jadwal:", err);
+    console.error("ACK jadwal gagal:", err.response?.data || err);
   }
+
   emit("close");
 }
 </script>
+
 
 <style scoped>
 .page {

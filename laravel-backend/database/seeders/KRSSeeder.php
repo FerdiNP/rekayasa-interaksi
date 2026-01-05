@@ -10,16 +10,10 @@ class KRSSeeder extends Seeder
     public function run()
     {
         $mahasiswa = DB::table('mahasiswa')->get();
-        $currentYear = (int) date('Y');
+        $semesterAkademikList = DB::table('semester_akademik')->pluck('id');
 
         foreach ($mahasiswa as $mhs) {
-            $tahunMasuk = (int) substr($mhs->nim, 0, 4);
-            $progressYears = max(0, $currentYear - $tahunMasuk);
-            $semesterMax = min(5, ($progressYears + 1) * 2);
-            $semesterMax = max(1, $semesterMax);
-            $semesterIds = range(1, $semesterMax);
-
-            foreach ($semesterIds as $semesterId) {
+            foreach ($semesterAkademikList as $semesterId) {
                 DB::table('krs')->insert([
                     'mahasiswa_id' => $mhs->nim,
                     'semester_akademik_id' => $semesterId,

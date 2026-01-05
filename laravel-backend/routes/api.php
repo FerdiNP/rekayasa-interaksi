@@ -47,8 +47,9 @@ Route::middleware('auth:sanctum')->group(function () {
     /*
      * JADWAL & PRESENSI
     */
-    Route::apiResource('/jadwal', JadwalController::class)->except(['destroy']);
-    Route::put('/presensi', [JadwalController::class, 'presensi']);
+    Route::get('/jadwal', [JadwalController::class, 'index']);
+    Route::post('/jadwal/presensi', [JadwalController::class, 'presensi']);
+    Route::put('/jadwal/{id}/ack', [JadwalController::class, 'acknowledge']);
 
     /*
      * KEUANGAN

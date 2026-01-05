@@ -9,34 +9,27 @@ class KRSDetailSeeder extends Seeder
 {
     public function run()
     {
-        $usedKelasPerProdiSemester = [];
         $krsList = DB::table('krs')->get();
 
         foreach ($krsList as $krs) {
+
             $mahasiswa = DB::table('mahasiswa')
                 ->where('nim', $krs->mahasiswa_id)
                 ->first();
 
-            if (! $mahasiswa) {
-                continue;
-            }
+            if (!$mahasiswa) continue;
 
-            $allowedSemester = $this->getAllowedSemester($mahasiswa->nim);
-
-            if ($krs->semester_akademik_id > $allowedSemester) {
-                continue;
-            }
-
-            $key = "{$mahasiswa->program_studi_id}_{$krs->semester_akademik_id}";
+            // 🔥 hitung semester mahasiswa
+            $semesterMahasiswa = $this->hitungSemesterMahasiswa(
+                $mahasiswa->nim,
+                $krs->semester_akademik_id
+            );
 
             $kelasList = DB::table('kelas_kuliah')
                 ->join('mata_kuliah', 'kelas_kuliah.mata_kuliah_id', '=', 'mata_kuliah.kode_mk')
                 ->where('mata_kuliah.program_studi_id', $mahasiswa->program_studi_id)
-                ->where('mata_kuliah.semester_saran', $krs->semester_akademik_id)
+                ->where('mata_kuliah.semester_saran', $semesterMahasiswa)
                 ->where('kelas_kuliah.semester_akademik_id', $krs->semester_akademik_id)
-                ->when(! empty($usedKelasPerProdiSemester[$key]), function ($query) use ($usedKelasPerProdiSemester, $key) {
-                    $query->whereNotIn('kelas_kuliah.id', $usedKelasPerProdiSemester[$key]);
-                })
                 ->limit(5)
                 ->get();
 
@@ -45,18 +38,21 @@ class KRSDetailSeeder extends Seeder
                     'krs_id' => $krs->id,
                     'kelas_kuliah_id' => $kelas->id,
                 ]);
-
-                $usedKelasPerProdiSemester[$key][] = $kelas->id;
             }
         }
     }
 
-    private function getAllowedSemester(string $nim): int
+    private function hitungSemesterMahasiswa(string $nim, int $semesterAkademikId): int
     {
         $tahunMasuk = (int) substr($nim, 0, 4);
-        $currentYear = (int) date('Y');
-        $progressYears = max(0, $currentYear - $tahunMasuk);
-        $semesterMax = min(5, ($progressYears + 1) * 2);
-        return max(1, $semesterMax);
+
+        $semesterAkademik = DB::table('semester_akademik')
+            ->where('id', $semesterAkademikId)
+            ->first();
+
+        $tahunAkademik = (int) substr($semesterAkademik->nama_semester, 0, 4);
+        $isGanjil = str_contains(strtolower($semesterAkademik->nama_semester), 'ganjil');
+
+        return ($tahunAkademik - $tahunMasuk) * 2 + ($isGanjil ? 1 : 2);
     }
 }

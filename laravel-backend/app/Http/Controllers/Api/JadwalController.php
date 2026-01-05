@@ -30,6 +30,32 @@ class JadwalController extends Controller
     return new JadwalResource(true, "List jadwal NIM $nim", $jadwal);
 }
 
+public function index(Request $request)
+{
+    $user = $request->user();
+
+    if (!$user || !$user->nim) {
+        return response()->json([
+            'success' => false,
+            'message' => 'User tidak valid'
+        ], 401);
+    }
+
+    $jadwal = JadwalKuliah::with([
+        'kelasKuliah_lama.mataKuliah',
+        'kelasKuliah_lama.dosen',
+        'kelasKuliah_baru.mataKuliah',
+        'kelasKuliah_baru.dosen',
+    ])
+    ->where('NIM', $user->nim)
+    ->get();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Jadwal kuliah',
+        'data' => $jadwal
+    ]);
+}
 
     public function store(Request $request)
 {
@@ -146,4 +172,19 @@ public function update(Request $request, $id)
 
     return new JadwalResource(true, "Presensi Berhasil", $jadwal);
     }
+
+    public function acknowledge($id)
+{
+    $jadwal = JadwalKuliah::findOrFail($id);
+
+    $jadwal->update([
+        'dibaca_at' => now(),
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Perubahan jadwal telah dibaca'
+    ]);
+}
+
 }

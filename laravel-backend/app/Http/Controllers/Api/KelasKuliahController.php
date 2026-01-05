@@ -178,4 +178,3 @@ public function destroy($id) //PUT
     return new KelasKuliahResource(true, "Kelas id $id Berhasil dihapus!", null);
 }
 }
-
