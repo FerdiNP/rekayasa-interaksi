@@ -10,9 +10,9 @@
       aria-modal="true"
     >
       <div class="icon-wrap">
-        <div class="icon-wrapper-alert">
-          <div class="icon-wrapper-2-alert">
-            <div class="icon-alert"></div>
+        <div class="icon-wrapper-danger">
+          <div class="icon-wrapper-2-danger">
+            <div class="icon-danger"></div>
           </div>
         </div>
       </div>
@@ -44,9 +44,9 @@
       aria-modal="true"
     >
       <div class="icon-wrap">
-        <div class="icon-wrapper-danger">
-          <div class="icon-wrapper-2-danger">
-            <div class="icon-danger"></div>
+        <div class="icon-wrapper-alert">
+          <div class="icon-wrapper-2-alert">
+            <div class="icon-alert"></div>
           </div>
         </div>
       </div>

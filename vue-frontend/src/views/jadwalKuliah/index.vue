@@ -21,7 +21,10 @@
         </div>
       </div>
 
-      <div class="alert alert-warning">
+      <div
+        v-if="adaPerubahanJadwal"
+        class="alert alert-warning"
+      >
         <div class="alert-header">
           <div class="icon-wrap">
             <div class="icon-wrapper-alert">
@@ -33,14 +36,16 @@
           <div class="content">
             <span class="alert-title">Terdapat Perubahan Jadwal</span>
             <p class="alert-desc">
-              Cek perubahan jadwal pada Mata Kuliah dengan menekan tombol Icon
-              Danger pada tabel.
+              Cek perubahan jadwal pada Mata Kuliah dengan menekan icon di tabel.
             </p>
           </div>
         </div>
       </div>
 
-      <div class="alert alert-danger">
+      <div
+        v-if="adaPindahKelas"
+        class="alert alert-danger"
+      >
         <div class="alert-header">
           <div class="icon-wrap">
             <div class="icon-wrapper-danger">
@@ -52,8 +57,7 @@
           <div class="content">
             <span class="alert-title">Terdapat Perubahan Kelas</span>
             <p class="alert-desc">
-              Cek perubahan Kelas pada Mata Kuliah dengan menekan tombol Icon
-              Error pada tabel.
+              Cek perubahan kelas pada Mata Kuliah dengan menekan icon di tabel.
             </p>
           </div>
         </div>
@@ -84,11 +88,11 @@
                     class="icon-wrap clickable"
                     @click="openAlert(row, 'warning')"
                   >
-                    <div class="icon-wrapper-alert">
-                      <div class="icon-wrapper-2-alert">
-                        <div class="icon-alert"></div>
-                      </div>
+                  <div class="icon-wrapper-danger">
+                    <div class="icon-wrapper-2-danger">
+                      <div class="icon-danger"></div>
                     </div>
+                  </div>
                   </div>
                   <div
                     v-else-if="row.is_jadwal_berubah"
@@ -96,12 +100,11 @@
                     @click="openAlert(row, 'error')"
                   >
 
-
-                    <div class="icon-wrapper-danger">
-                      <div class="icon-wrapper-2-danger">
-                        <div class="icon-danger"></div>
-                      </div>
+                  <div class="icon-wrapper-alert">
+                    <div class="icon-wrapper-2-alert">
+                      <div class="icon-alert"></div>
                     </div>
+                  </div>
                   </div>
 
                   {{ index + 1 }}
@@ -155,7 +158,7 @@
   </template>
 
   <script setup>
-  import { ref, onMounted, onUnmounted } from "vue";
+  import { ref, onMounted, onUnmounted, computed } from "vue";
   import AlertDetails from "../../components/alertDetails.vue";
   import NotificationJadwal from "../../components/notificationJadwal.vue";
   import PresensiSuccess from "../../components/presensiSuccess.vue";
@@ -174,6 +177,14 @@
   const nama = ref("-");
   const tahunAkademik = ref("-");
   const semesterAktif = ref("-");
+
+  const adaPerubahanJadwal = computed(() =>
+    jadwal.value.some((row) => row.is_jadwal_berubah)
+  );
+
+  const adaPindahKelas = computed(() =>
+    jadwal.value.some((row) => row.is_pindah_kelas)
+  );
 
   let intervalId = null;
 

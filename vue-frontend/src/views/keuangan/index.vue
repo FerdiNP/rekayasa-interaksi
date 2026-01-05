@@ -29,24 +29,42 @@
       </div>
     </div>
 
-    <div class="status-banner">
+    <div class="status-banner" :class="apiStatus">
       <div class="status-icon-wrapper">
         <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
+          v-if="apiStatus === 'success'"
+          width="24" height="24" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2"
         >
           <path d="M20 6L9 17l-5-5" />
         </svg>
+
+        <svg
+          v-else-if="apiStatus === 'slow'"
+          width="24" height="24" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="6" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12" y2="16" />
+        </svg>
+
+        <svg
+          v-else-if="apiStatus === 'error'"
+          width="24" height="24" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2"
+        >
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
       </div>
+
       <div class="status-text">
-        <h3>SISTEM PEMBAYARAN LANCAR</h3>
-        <p>Transaksi dapat dilakukan seperti biasa tanpa kendala.</p>
+        <h3>{{ apiMessage.title }}</h3>
+        <p>{{ apiMessage.desc }}</p>
       </div>
     </div>
+
 
     <div class="payment-section">
       <h2 class="section-title">Pembayaran Semester {{ semesterAktif }}</h2>
@@ -259,7 +277,14 @@
         <a href="#" @click.prevent="resendOtp">Click to resend.</a>
       </div>
 
-      <button class="btn-confirm" @click="finishPayment">Confirm</button>
+      <button
+        class="btn-confirm"
+        :disabled="isProcessing"
+        @click="finishPayment"
+      >
+        <span v-if="!isProcessing">Confirm</span>
+        <span v-else>Processing...</span>
+      </button>
       <button class="btn-cancel" @click="closeVerification">Cancel</button>
     </div>
   </div>
@@ -307,10 +332,13 @@
 
 <script setup>
 import { ref, reactive, nextTick, onMounted, onBeforeUnmount } from "vue";
-
+import api from "../../api";
 const nim = ref("-");
 const nama = ref("-");
 const semesterAktif = ref("-");
+const formatRupiah = (v) =>
+  "Rp " + Number(v).toLocaleString("id-ID");
+const isProcessing = ref(false);
 
 onMounted(() => {
   const storedUser = localStorage.getItem("user");
@@ -329,35 +357,62 @@ onMounted(() => {
   }
 });
 
-const payments = ref([
-  {
-    id: 1,
-    title: "Her Registrasi",
-    desc: "Wajib dibayar lunas sebelum melakukan KRS",
-    tagihan: "Rp 300.000",
-    terbayar: "Rp 300.000",
-    kekurangan: "Rp 0",
-    status: "paid",
-  },
-  {
-    id: 2,
-    title: "SPP Semester 7 HER",
-    desc: "Wajib dibayar lunas sebelum melakukan KRS",
-    tagihan: "Rp 2.650.000",
-    terbayar: "Rp 2.650.000",
-    kekurangan: "Rp 0",
-    status: "paid",
-  },
-  {
-    id: 3,
-    title: "SPP Semester 7 UTS",
-    desc: "Wajib dibayar lunas sebelum melakukan KRS",
-    tagihan: "Rp 2.650.000",
-    terbayar: "Rp 0",
-    kekurangan: "Rp 2.650.000",
-    status: "unpaid",
-  },
-]);
+const payments = ref([]);
+
+const fetchTagihan = async () => {
+  const startTime = performance.now();
+
+  try {
+    const res = await api.get("/keuangan/tagihan", {
+      params: { status: "all" }
+    });
+
+    const duration = performance.now() - startTime;
+
+    if (duration < 3000) {
+      apiStatus.value = "success";
+      apiMessage.value = {
+        title: "SISTEM PEMBAYARAN LANCAR",
+        desc: "Transaksi dapat dilakukan seperti biasa tanpa kendala.",
+      };
+    } else {
+      apiStatus.value = "slow";
+      apiMessage.value = {
+        title: "SISTEM PEMBAYARAN LAMBAT",
+        desc: "Server merespon lebih lambat dari biasanya.",
+      };
+    }
+
+    payments.value = res.data.map(t => {
+      const totalBayar = t.pembayaran.reduce(
+        (sum, p) => sum + Number(p.nominal_bayar),
+        0
+      );
+
+      return {
+        id: t.id,
+        title: t.jenis_pembayaran.nama_jenis,
+        desc: t.jenis_pembayaran.keterangan,
+        tagihan: formatRupiah(t.nominal),
+        terbayar: formatRupiah(totalBayar),
+        kekurangan: formatRupiah(t.nominal - totalBayar),
+        status: t.status === "LUNAS" ? "paid" : "unpaid",
+        raw: t,
+      };
+    });
+
+  } catch (e) {
+    apiStatus.value = "error";
+    apiMessage.value = {
+      title: "SISTEM PEMBAYARAN BERMASALAH",
+      desc: "Gagal terhubung ke server. Silakan coba beberapa saat lagi.",
+    };
+
+    console.error(e);
+  }
+};
+
+onMounted(fetchTagihan);
 
 const isPaymentModalOpen = ref(false);
 const isVerificationOpen = ref(false);
@@ -465,30 +520,45 @@ const resendOtp = () => {
   alert("Kode verifikasi telah dikirim ulang (mock).");
 };
 
-const finishPayment = () => {
-  const fullCode = otpCode.join("");
-  if (fullCode.length < 4 || /\D/.test(fullCode)) {
-    alert("Harap masukkan 4 digit kode OTP yang valid");
+const finishPayment = async () => {
+  if (isProcessing.value) return;
+
+  const otp = otpCode.join("");
+  if (otp.length !== 4) {
+    alert("OTP tidak valid");
     return;
   }
 
-  isVerificationOpen.value = false;
-  isSuccessOpen.value = true;
+  isProcessing.value = true;
 
-  if (selectedBill.value) {
-    const target = payments.value.find((p) => p.id === selectedBill.value.id);
-    if (target) {
-      target.status = "paid";
-      target.terbayar = target.tagihan;
-      target.kekurangan = "Rp 0";
-    }
+  try {
+    await api.post("/keuangan/pembayaran", {
+      tagihan_id: selectedBill.value.id,
+      tgl_bayar: new Date().toISOString().slice(0, 10),
+      nominal_bayar: selectedBill.value.raw.nominal,
+      metode_bayar: method.value.toUpperCase(),
+      ref_bank: "VA-" + Date.now(),
+    });
+
+    isVerificationOpen.value = false;
+    isSuccessOpen.value = true;
+
+    await fetchTagihan();
+
+    setTimeout(() => {
+      isSuccessOpen.value = false;
+      selectedBill.value = null;
+    }, 2000);
+
+  } catch (e) {
+    alert("Pembayaran gagal");
+    console.error(e);
+  } finally {
+    isProcessing.value = false;
   }
-
-  setTimeout(() => {
-    isSuccessOpen.value = false;
-    selectedBill.value = null;
-  }, 2500);
 };
+
+
 
 const onGlobalKeydown = (e) => {
   if (e.key === "Escape") {
@@ -497,6 +567,14 @@ const onGlobalKeydown = (e) => {
     else if (isSuccessOpen.value) isSuccessOpen.value = false;
   }
 };
+
+const apiStatus = ref("idle");
+
+const apiMessage = ref({
+  title: "MEMERIKSA SISTEM PEMBAYARAN",
+  desc: "Sedang menghubungi server keuangan...",
+});
+
 
 onMounted(() => {
   window.addEventListener("keydown", onGlobalKeydown);
@@ -584,14 +662,41 @@ onBeforeUnmount(() => {
 }
 
 .status-banner {
-  background-color: #d1fae5;
   border-radius: 10px;
   padding: 14px;
   display: flex;
   gap: 12px;
-  margin-bottom: 22px;
   align-items: center;
+  margin-bottom: 22px;
 }
+
+.status-banner.success {
+  background-color: #d1fae5;
+}
+.status-banner.success .status-icon-wrapper {
+  background: #ffffff;
+  border: 2px solid #a7f3d0;
+  color: #10b981;
+}
+
+.status-banner.slow {
+  background-color: #fef3c7;
+}
+.status-banner.slow .status-icon-wrapper {
+  background: #ffffff;
+  border: 2px solid #fde68a;
+  color: #d97706;
+}
+
+.status-banner.error {
+  background-color: #fee2e2;
+}
+.status-banner.error .status-icon-wrapper {
+  background: #ffffff;
+  border: 2px solid #fecaca;
+  color: #ef4444;
+}
+
 
 .status-icon-wrapper {
   width: 40px;
@@ -970,4 +1075,10 @@ onBeforeUnmount(() => {
   font-weight: 600;
   cursor: pointer;
 }
+
+.btn-confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 </style>

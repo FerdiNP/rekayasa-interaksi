@@ -10,9 +10,9 @@ class JenisPembayaranSeeder extends Seeder
     public function run(): void
     {
         DB::table('jenis_pembayaran')->insert([
-            ['id'=>1,'kode_jenis'=>'SPP','nama_jenis'=>'SPP Semester'],
-            ['id'=>2,'kode_jenis'=>'DPP','nama_jenis'=>'DPP Awal'],
-            ['id'=>3,'kode_jenis'=>'SKP','nama_jenis'=>'Skripsi'],
+            ['id'=>1,'kode_jenis'=>'SPP','nama_jenis'=>'SPP'],
+            ['id'=>2,'kode_jenis'=>'DPP','nama_jenis'=>'DPP'],
+            ['id'=>3,'kode_jenis'=>'HER','nama_jenis'=>'Her Registrasi'],
         ]);
     }
 }

@@ -15,7 +15,7 @@ class KeuanganController extends Controller
        JENIS PEMBAYARAN
     ============================== */
 
-    // GET 
+    // GET
     public function jenisPembayaran(Request $request)
     {
         $withTagihan = $request->boolean('with_tagihan', false);
@@ -28,7 +28,7 @@ class KeuanganController extends Controller
         return response()->json($q->get());
     }
 
-    // POST 
+    // POST
     public function storeJenisPembayaran(Request $request)
     {
         $data = $request->validate([
@@ -42,7 +42,7 @@ class KeuanganController extends Controller
         return response()->json($jenis, 201);
     }
 
-    // PUT 
+    // PUT
     public function updateJenisPembayaran(Request $request, $id)
     {
         $jenis = JenisPembayaran::findOrFail($id);
@@ -58,7 +58,7 @@ class KeuanganController extends Controller
         return response()->json($jenis);
     }
 
-    // DELETE 
+    // DELETE
     public function destroyJenisPembayaran($id)
     {
         $jenis = JenisPembayaran::withCount('tagihan')->findOrFail($id);
@@ -80,25 +80,28 @@ class KeuanganController extends Controller
        TAGIHAN
     ============================== */
 
-    // GET 
+    // GET
     public function tagihan(Request $request)
     {
-        $status = $request->query('status', 'not_lunas');
+        $nim = auth()->user()->nim; // 🔥 LANGSUNG DARI MAHASISWA
 
-        $q = Tagihan::with(['mahasiswa', 'jenisPembayaran', 'semesterAkademik', 'pembayaran']);
+        $query = Tagihan::with([
+            'jenisPembayaran',
+            'semesterAkademik',
+            'pembayaran'
+        ])->where('mahasiswa_id', $nim);
 
-        if ($status === 'all') {
-            // no filter
-        } elseif ($status === 'lunas') {
-            $q->where('status', 'lunas');
-        } else {
-            $q->where('status', '!=', 'lunas');
+        if ($request->status === 'lunas') {
+            $query->where('status', 'LUNAS');
+        } elseif ($request->status !== 'all') {
+            $query->where('status', '!=', 'LUNAS');
         }
 
-        return response()->json($q->get());
+        return response()->json($query->get());
     }
 
-    // POST 
+
+    // POST
     public function storeTagihan(Request $request)
     {
         /*$data = $request->validate([
@@ -118,14 +121,14 @@ class KeuanganController extends Controller
     'status' => 'required|string',
 ]);
 
-       
+
 
         $tagihan = Tagihan::create($data);
 
         return response()->json($tagihan, 201);
     }
 
-    // PUT 
+    // PUT
     public function updateTagihan(Request $request, $id)
     {
         $tagihan = Tagihan::findOrFail($id);
@@ -141,7 +144,7 @@ class KeuanganController extends Controller
         return response()->json($tagihan);
     }
 
-    // DELETE 
+    // DELETE
     public function destroyTagihan($id)
     {
         $tagihan = Tagihan::withCount('pembayaran')->findOrFail($id);
@@ -163,7 +166,7 @@ class KeuanganController extends Controller
        PEMBAYARAN
     ============================== */
 
-    // GET 
+    // GET
     public function pembayaran(Request $request)
     {
         $q = Pembayaran::with('tagihan');
@@ -175,7 +178,7 @@ class KeuanganController extends Controller
         return response()->json($q->get());
     }
 
-   // POST 
+   // POST
 public function storePembayaran(Request $request)
 {
     $data = $request->validate([
@@ -226,8 +229,8 @@ public function storePembayaran(Request $request)
 }
 
 
-    // DELETE 
-    
+    // DELETE
+
 public function destroyPembayaran($id)
 {
     DB::beginTransaction();

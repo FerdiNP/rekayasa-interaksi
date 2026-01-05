@@ -3,37 +3,68 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use App\Models\Tagihan;
+use App\Models\Mahasiswa;
+use App\Models\JenisPembayaran;
+use App\Models\SemesterAkademik;
+use Carbon\Carbon;
 
 class TagihanSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::table('tagihan')->insert([
-            [
-                'id' => 1,
-                'mahasiswa_id' => '20221101',
-                'jenis_pembayaran_id' => 1,
-                'semester_akademik_id' => 1,
-                'nominal' => 3000000,
-                'status' => 'BELUM_LUNAS',
-            ],
-            [
-                'id' => 2,
-                'mahasiswa_id' => '20231202',
-                'jenis_pembayaran_id' => 1,
-                'semester_akademik_id' => 3,
-                'nominal' => 3000000,
-                'status' => 'LUNAS',
-            ],
-            [
-                'id' => 3,
-                'mahasiswa_id' => '20241303',
-                'jenis_pembayaran_id' => 2,
-                'semester_akademik_id' => 5,
-                'nominal' => 5000000,
-                'status' => 'LUNAS',
-            ],
-        ]);
+        $semester = SemesterAkademik::where('status', 'AKTIF')->first();
+        if (!$semester) {
+            $this->command->error('❌ Semester aktif tidak ditemukan');
+            return;
+        }
+
+        $jenis = JenisPembayaran::whereIn('kode_jenis', ['HER', 'SPP', 'DPP'])
+            ->get()
+            ->keyBy('kode_jenis');
+
+        if ($jenis->count() < 3) {
+            $this->command->error('❌ Jenis pembayaran belum lengkap');
+            return;
+        }
+
+        $mahasiswaList = Mahasiswa::select('nim')->get();
+
+        if ($mahasiswaList->isEmpty()) {
+            $this->command->error('❌ Tidak ada mahasiswa');
+            return;
+        }
+
+        foreach ($mahasiswaList as $mhs) {
+
+            Tagihan::create([
+                'mahasiswa_id'         => $mhs->nim,
+                'jenis_pembayaran_id'  => $jenis['HER']->id,
+                'semester_akademik_id' => $semester->id,
+                'nominal'              => 300000,
+                'tgl_jatuh_tempo'      => Carbon::now()->addDays(7),
+                'status'               => 'BELUM_LUNAS',
+            ]);
+
+            Tagihan::create([
+                'mahasiswa_id'         => $mhs->nim,
+                'jenis_pembayaran_id'  => $jenis['SPP']->id,
+                'semester_akademik_id' => $semester->id,
+                'nominal'              => 2650000,
+                'tgl_jatuh_tempo'      => Carbon::now()->addDays(14),
+                'status'               => 'BELUM_LUNAS',
+            ]);
+
+            Tagihan::create([
+                'mahasiswa_id'         => $mhs->nim,
+                'jenis_pembayaran_id'  => $jenis['DPP']->id,
+                'semester_akademik_id' => $semester->id,
+                'nominal'              => 2650000,
+                'tgl_jatuh_tempo'      => Carbon::now()->addDays(30),
+                'status'               => 'BELUM_LUNAS',
+            ]);
+        }
+
+        $this->command->info('✅ Seeder Tagihan BERHASIL (pakai NIM)');
     }
 }
