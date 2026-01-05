@@ -12,7 +12,7 @@ use App\Models\PengajuanSurat;
 class SuratController extends Controller
 
 {
-    // JENIS SURAT 
+    // JENIS SURAT
     public function indexJenisSurat()
     {
         return response()->json(JenisSurat::orderBy('id', 'desc')->get(), 200);
@@ -63,39 +63,25 @@ class SuratController extends Controller
     }
 
 
-   
-    // PENGAJUAN SURAT 
+
+    // PENGAJUAN SURAT
     public function indexPengajuan(Request $request)
     {
-        $q = PengajuanSurat::query()
-            ->with(['jenisSurat']); 
 
-        
-        if ($request->filled('mahasiswa_id')) {
-            $q->where('mahasiswa_id', $request->mahasiswa_id);
+        $query = PengajuanSurat::query()
+            ->with('jenisSurat');
+
+        if ($request->has('mahasiswa_id')) {
+            $nim = trim((string) $request->query('mahasiswa_id'));
+
+            $query->where('mahasiswa_id', $nim);
         }
 
-       
-        if ($request->filled('status')) {
-            $q->where('status', $request->status);
-        }
-
-       
-        if ($request->filled('jenis_surat_id')) {
-            $q->where('jenis_surat_id', $request->jenis_surat_id);
-        }
-
-        $data = $q->orderBy('id', 'desc')->get();
-
-   
-        $data = $data->map(function ($item) {
-            $item->jenis_surat = $item->jenisSurat; 
-            unset($item->jenisSurat);
-            return $item;
-        });
+        $data = $query->orderBy('id', 'desc')->get();
 
         return response()->json($data, 200);
     }
+
 
     public function showPengajuan($id)
     {

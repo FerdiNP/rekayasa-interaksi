@@ -110,4 +110,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('pengajuan/{id}/approve', [SuratController::class, 'approve']);
         Route::put('pengajuan/{id}/reject', [SuratController::class, 'reject']);
     });
+
+    Route::prefix('surat')->group(function () {
+        Route::get('pengajuan', [SuratController::class, 'indexPengajuan']);
+        Route::post('pengajuan', [SuratController::class, 'storePengajuan']);
+        Route::get('pengajuan/{id}', [SuratController::class, 'showPengajuan']);
+        Route::put('pengajuan/{id}', [SuratController::class, 'updatePengajuan']);
+        Route::delete('pengajuan/{id}', [SuratController::class, 'destroyPengajuan']);
+    });
 });

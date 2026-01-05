@@ -8,10 +8,7 @@ import Jadwal from "../views/jadwalKuliah/index.vue";
 import KRS from "../views/krs/index.vue";
 import Keuangan from "../views/keuangan/index.vue";
 
-import SuratLayout from "../views/surat/HalamanSurat.vue";
-import SuratCuti from "../views/surat/Cuti.vue";
-import SuratAktifKembali from "../views/surat/AktifKembali.vue";
-import SuratPengajuan from "../views/surat/PengajuanSurat.vue";
+import Surat from "../views/surat/index.vue";
 
 const routes = [
   {
@@ -59,25 +56,9 @@ const routes = [
 
   {
     path: "/surat",
-    component: SuratLayout,
+    name: "surat",
+    component: Surat,
     meta: { requiresAuth: true },
-    children: [
-      {
-        path: "cuti",
-        name: "surat.cuti",
-        component: SuratCuti,
-      },
-      {
-        path: "aktif-kembali",
-        name: "surat.aktif",
-        component: SuratAktifKembali,
-      },
-      {
-        path: "pengajuan",
-        name: "surat.pengajuan",
-        component: SuratPengajuan,
-      },
-    ],
   },
 ];
 

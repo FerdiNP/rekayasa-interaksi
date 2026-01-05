@@ -12,26 +12,26 @@ class PengajuanSuratSeeder extends Seeder
         DB::table('pengajuan_surat')->insert([
 
             [
-                'mahasiswa_id'   => '20221101',
+                'mahasiswa_id'   => '20221001',
                 'jenis_surat_id' => 1,
                 'tgl_pengajuan'  => now(),
-                'status'         => 'DIAJUKAN',
+                'status'         => 'DIPROSES',
                 'tgl_disetujui'  => null,
                 'catatan_admin'  => null,
                 'file_surat_path'=> null,
             ],
             [
-                'mahasiswa_id'   => '20231202',
+                'mahasiswa_id'   => '20221001',
                 'jenis_surat_id' => 2,
                 'tgl_pengajuan'  => now(),
-                'status'         => 'DIAJUKAN',
+                'status'         => 'DISETUJUI',
                 'tgl_disetujui'  => null,
                 'catatan_admin'  => null,
                 'file_surat_path'=> null,
             ],
             [
-                'mahasiswa_id'   => '20241303',
-                'jenis_surat_id' => 3,
+                'mahasiswa_id'   => '20221001',
+                'jenis_surat_id' => 2,
                 'tgl_pengajuan'  => now(),
                 'status'         => 'DIAJUKAN',
                 'tgl_disetujui'  => null,
@@ -59,7 +59,7 @@ class PengajuanSuratSeeder extends Seeder
             ],
             [
                 'mahasiswa_id'   => '20241603',
-                'jenis_surat_id' => 3,
+                'jenis_surat_id' => 1,
                 'tgl_pengajuan'  => now(),
                 'status'         => 'DIPROSES',
                 'tgl_disetujui'  => null,
@@ -87,7 +87,7 @@ class PengajuanSuratSeeder extends Seeder
             ],
             [
                 'mahasiswa_id'   => '20241903',
-                'jenis_surat_id' => 3,
+                'jenis_surat_id' => 1,
                 'tgl_pengajuan'  => now(),
                 'status'         => 'DISETUJUI',
                 'tgl_disetujui'  => now(),

@@ -57,15 +57,22 @@
           ☰
         </button>
 
-        <div class="account" @click="toggleDropdown">
-          <span>{{ user?.nama_lengkap }}</span>
+        <div class="account account-trigger" @click="toggleDropdown">
+          <span class="account-name">{{ user?.nama_lengkap }}</span>
           <span class="arrow" :class="{ rotate: dropdownOpen }">▼</span>
 
           <ul v-if="dropdownOpen" class="dropdown">
-            <li @click="viewProfile">View Profile</li>
-            <li @click="logout">Logout</li>
+            <li @click="viewProfile">
+              <span class="dropdown-icon">👤</span>
+              <span>Profil</span>
+            </li>
+            <li @click="logout">
+              <span class="dropdown-icon">🚪</span>
+              <span>Logout</span>
+            </li>
           </ul>
         </div>
+
       </header>
 
       <div class="content">
@@ -78,10 +85,24 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "./stores/auth";
 import FloatingChat from "./components/FloatingChat.vue";
+
+const handleClickOutside = (e) => {
+  if (!e.target.closest(".account")) {
+    dropdownOpen.value = false;
+  }
+};
+
+onMounted(() => {
+  document.addEventListener("click", handleClickOutside);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener("click", handleClickOutside);
+});
 
 const auth = useAuthStore();
 
@@ -112,6 +133,7 @@ function toggleDropdown() {
 function viewProfile() {
   router.push("/profile");
 }
+
 </script>
 
 <style scoped>
@@ -307,4 +329,93 @@ main.full {
     padding: 0;
   }
 }
+
+/* ACCOUNT BUTTON */
+.account{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: #ffffff;
+  border-radius: 999px;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+
+  /* shadow lembut */
+  box-shadow:
+    0 4px 12px rgba(15, 23, 42, 0.08),
+    0 1px 2px rgba(15, 23, 42, 0.04);
+
+  transition: box-shadow .2s ease, transform .2s ease;
+}
+
+.account:hover{
+  box-shadow:
+    0 8px 20px rgba(15, 23, 42, 0.12),
+    0 2px 4px rgba(15, 23, 42, 0.06);
+  transform: translateY(-1px);
+}
+
+.account-name{
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+/* DROPDOWN */
+.dropdown{
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 180px;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 6px;
+  list-style: none;
+
+  /* NO BORDER, ONLY SHADOW */
+  box-shadow:
+    0 16px 40px rgba(15, 23, 42, 0.14),
+    0 4px 12px rgba(15, 23, 42, 0.08);
+
+  animation: dropdownFade .18s ease-out;
+  z-index: 50;
+}
+
+/* DROPDOWN ITEM */
+.dropdown li{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  transition: background .15s ease, transform .15s ease;
+}
+
+.dropdown li:hover{
+  background: #f1f5f9;
+  transform: translateX(2px);
+}
+
+/* ICON */
+.dropdown-icon{
+  font-size: 16px;
+}
+
+/* ANIMATION */
+@keyframes dropdownFade{
+  from{
+    opacity: 0;
+    transform: translateY(-6px) scale(.98);
+  }
+  to{
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 </style>
